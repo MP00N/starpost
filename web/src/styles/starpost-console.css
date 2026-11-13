@@ -1,0 +1,191 @@
+/**
+ * 驿站控制台 — console skin.
+ *
+ * 之前只换配色，形状、间距、字体全是原生，所以「看不出中国风」。这一层改的是
+ * 几何与字排，四件事：
+ *
+ *   1. 圆角收到 2px。原生 16px 圆角加投影是现代 SaaS 的语言；纸与木刻是方的。
+ *   2. 去投影，层级改用发丝线加明度。印在纸上没有影子。
+ *   3. 标题换衬线并收字距，和首页同一个 --font-serif。
+ *   4. 数字全站等宽，表格才能对齐成账本。
+ *
+ * 全部限定 [data-theme-preset='starpost']，换预设即完全复原。
+ */
+
+/* ── 0 · 品牌 token：全局唯一定义处 ──────────────────────────────────────
+ * 这些值原来写在首页 `.sp-page` 上，控制台拿不到，于是印章渲染成黑块、
+ * 界格背景算出来是 `none`。收进这里，让首页与控制台共用同一套。
+ */
+[data-theme-preset='starpost'] {
+  /* 朱砂 — 印章在任何朝代都是红的，这个值不随主题漂移 */
+  --sp-seal-ink: oklch(0.552 0.192 27);
+  --sp-rule: color-mix(in oklch, var(--foreground) 14%, transparent);
+  --sp-rule-soft: color-mix(in oklch, var(--foreground) 7%, transparent);
+  --sp-rule-strong: color-mix(in oklch, var(--foreground) 26%, transparent);
+  --sp-kaige-global: color-mix(in oklch, var(--foreground) 3.5%, transparent);
+}
+
+.dark [data-theme-preset='starpost'] {
+  --sp-seal-ink: oklch(0.688 0.176 29);
+  --sp-rule: color-mix(in oklch, var(--foreground) 16%, transparent);
+  --sp-rule-soft: color-mix(in oklch, var(--foreground) 9%, transparent);
+  --sp-rule-strong: color-mix(in oklch, var(--foreground) 32%, transparent);
+  --sp-kaige-global: color-mix(in oklch, var(--foreground) 4.5%, transparent);
+}
+
+
+/* ── 1 · 圆角：方硬 ────────────────────────────────────────────────────── */
+[data-theme-preset='starpost'] {
+  --radius: 0.125rem;
+}
+
+[data-theme-preset='starpost'] [data-slot='card'],
+[data-theme-preset='starpost'] [data-slot='dialog'],
+[data-theme-preset='starpost'] [data-slot='popover'],
+[data-theme-preset='starpost'] [data-slot='select-trigger'],
+[data-theme-preset='starpost'] [data-slot='input'],
+[data-theme-preset='starpost'] [data-slot='textarea'],
+[data-theme-preset='starpost'] [data-slot='button'],
+[data-theme-preset='starpost'] [data-slot='badge'],
+[data-theme-preset='starpost'] [data-slot='dropdown-menu'],
+[data-theme-preset='starpost'] [data-slot='sheet'],
+[data-theme-preset='starpost'] [data-slot='tabs-list'],
+[data-theme-preset='starpost'] [data-slot='tabs-trigger'],
+[data-theme-preset='starpost'] [data-slot='command'],
+[data-theme-preset='starpost'] [data-slot='alert'],
+[data-theme-preset='starpost'] [data-slot='tooltip'],
+[data-theme-preset='starpost'] [data-slot='skeleton'],
+[data-theme-preset='starpost'] .rounded-md,
+[data-theme-preset='starpost'] .rounded-lg,
+[data-theme-preset='starpost'] .rounded-xl,
+[data-theme-preset='starpost'] .rounded-2xl {
+  border-radius: 2px;
+}
+
+/* 圆形元素不能被方角规则误伤。
+ * .rounded-full 是显式圆角，没争议；开关另外要单独兜底——它的轨道容器用的是
+ * size 工具类，被上面那条 .rounded-* 规则一起压方了，实测就是截图里那个方轨。 */
+[data-theme-preset='starpost'] .rounded-full {
+  border-radius: 9999px;
+}
+
+[data-theme-preset='starpost'] [data-slot='switch'],
+[data-theme-preset='starpost'] [data-slot='switch-thumb'],
+[data-theme-preset='starpost'] [role='switch'],
+[data-theme-preset='starpost'] [data-slot='radio-group-item'],
+[data-theme-preset='starpost'] [role='radio'],
+[data-theme-preset='starpost'] [data-slot='avatar'],
+[data-theme-preset='starpost'] [data-slot='spinner'],
+[data-theme-preset='starpost'] [data-slot='progress-indicator'] {
+  border-radius: 9999px;
+}
+
+/* ── 2 · 去投影，用发丝线 ──────────────────────────────────────────────── */
+[data-theme-preset='starpost'] [data-slot='card'],
+[data-theme-preset='starpost'] [data-slot='dialog'],
+[data-theme-preset='starpost'] [data-slot='popover'],
+[data-theme-preset='starpost'] [data-slot='dropdown-menu'],
+[data-theme-preset='starpost'] [data-slot='sheet'] {
+  box-shadow: none;
+  border: 1px solid var(--sp-rule-soft);
+}
+
+/* 浮层要一点分离感，否则和背景糊在一起：用极浅的一圈，不是投影 */
+[data-theme-preset='starpost'] [data-slot='dialog'],
+[data-theme-preset='starpost'] [data-slot='popover'],
+[data-theme-preset='starpost'] [data-slot='dropdown-menu'],
+[data-theme-preset='starpost'] [data-slot='sheet'] {
+  outline: 1px solid var(--sp-rule-soft);
+  outline-offset: 0;
+}
+
+/* ── 3 · 字排：衬线标题 + 收紧字距 ─────────────────────────────────────── */
+[data-theme-preset='starpost'] h1,
+[data-theme-preset='starpost'] h2,
+[data-theme-preset='starpost'] [data-slot='card-title'],
+[data-theme-preset='starpost'] [data-slot='dialog-title'] {
+  font-family: var(--font-serif, ui-serif, Georgia, serif);
+  font-weight: 600;
+  letter-spacing: -0.011em;
+}
+
+[data-theme-preset='starpost'] h1 {
+  letter-spacing: -0.02em;
+}
+
+/* 小标签：加大字距，像界格上的标注 */
+[data-theme-preset='starpost'] [data-slot='card-description'] {
+  letter-spacing: 0.04em;
+}
+
+/* 数字等宽：账本必须对齐 */
+[data-theme-preset='starpost'] table,
+[data-theme-preset='starpost'] .tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── 4 · 表格：去掉斑马纹，改成账本式横线 ──────────────────────────────── */
+[data-theme-preset='starpost'] table {
+  border-collapse: collapse;
+}
+
+[data-theme-preset='starpost'] table thead th {
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  border-bottom: 1px solid var(--sp-rule-soft);
+}
+
+[data-theme-preset='starpost'] table tbody tr {
+  border-top: 1px solid var(--sp-kaige-global);
+}
+
+[data-theme-preset='starpost'] table tbody tr:hover {
+  background: color-mix(in oklch, var(--sp-seal-ink) 4%, transparent);
+}
+
+/* ── 5 · 按钮：方角，字距收一点 ────────────────────────────────────────── */
+[data-theme-preset='starpost'] [data-slot='button'] {
+  letter-spacing: 0.01em;
+}
+
+/* ── 6 · 输入框：只用下缘一条线，像填写在格纸上 ────────────────────────── */
+[data-theme-preset='starpost'] [data-slot='input'],
+[data-theme-preset='starpost'] [data-slot='textarea'],
+[data-theme-preset='starpost'] [data-slot='select-trigger'] {
+  background: transparent;
+  border-width: 0 0 1px;
+  border-color: var(--sp-rule-soft);
+  border-radius: 0;
+}
+
+[data-theme-preset='starpost'] [data-slot='input']:focus-visible,
+[data-theme-preset='starpost'] [data-slot='textarea']:focus-visible,
+[data-theme-preset='starpost'] [data-slot='select-trigger']:focus-visible {
+  border-bottom-color: var(--sp-seal-ink);
+  box-shadow: 0 1px 0 0 var(--sp-seal-ink);
+  outline: none;
+}
+
+/* ── 7 · 侧栏：分组标题像界格旁的标注 ──────────────────────────────────── */
+[data-theme-preset='starpost'] [data-sidebar='group-label'] {
+  font-size: 10.5px;
+  letter-spacing: 0.18em;
+  opacity: 0.72;
+}
+
+[data-theme-preset='starpost'] [data-sidebar='menu-button'] {
+  border-radius: 2px;
+  letter-spacing: 0.005em;
+}
+
+/* ── 8 · 徽标：小字、宽字距 ────────────────────────────────────────────── */
+[data-theme-preset='starpost'] [data-slot='badge'] {
+  letter-spacing: 0.03em;
+  font-weight: 500;
+}
+
+/* ── 9 · 分隔线统一成发丝 ──────────────────────────────────────────────── */
+[data-theme-preset='starpost'] [data-slot='separator'] {
+  background: var(--sp-rule-soft);
+}

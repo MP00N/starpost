@@ -1,0 +1,155 @@
+/**
+ * 驿纸 — the console surface.
+ *
+ * Mounted once in AuthenticatedLayout, behind everything. Because it is a fixed
+ * layer rather than a per-page background, every route inherits it: channels,
+ * users, logs, settings — pages nobody rewrote still sit on the same paper.
+ *
+ * Only renders under [data-theme-preset='starpost'].
+ */
+
+.sp-surface {
+  display: none;
+}
+
+[data-theme-preset='starpost'] .sp-surface {
+  display: block;
+  position: fixed;
+  inset: 0;
+  /* body 的背景是不透明的纸色，纸面必须在它之上才看得见。
+     内容层再叠在纸面之上（见文件末尾）。 */
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* ── 1 · 纸底 ─────────────────────────────────────────────────────────────
+ * Warm off-white with a faint vertical grain. Two gradients, no image file. */
+[data-theme-preset='starpost'] .sp-surface::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    /* 极淡的竖向纸纹，40px 一条，模拟帘纹纸的帘距 */
+    repeating-linear-gradient(
+      to right,
+      color-mix(in oklch, var(--foreground) 1.6%, transparent) 0 1px,
+      transparent 1px 40px
+    ),
+    /* 顶部一点点暖光，往下褪成纸色 */
+    radial-gradient(
+      ellipse 120% 60% at 50% -10%,
+      color-mix(in oklch, var(--sp-amber, var(--chart-3)) 7%, transparent),
+      transparent 62%
+    );
+}
+
+/* ── 2 · 界格 ─────────────────────────────────────────────────────────────
+ * 96px columns, fading before the fold so data tables keep their contrast. */
+[data-theme-preset='starpost'] .sp-surface-grid {
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    to right,
+    color-mix(in oklch, var(--foreground) 8%, transparent) 0 1px,
+    transparent 1px 96px
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000 34%,
+    transparent 72%
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000 34%,
+    transparent 72%
+  );
+  opacity: 0.9;
+}
+
+/* ── 3 · 远山 ─────────────────────────────────────────────────────────────
+ * One ink band along the top only. Drawn with a radial gradient rather than an
+ * SVG path so it scales without assets; the softness is the point. */
+[data-theme-preset='starpost'] .sp-surface-wash {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 190px;
+  background:
+    radial-gradient(
+      58% 100% at 18% 118%,
+      color-mix(in oklch, var(--sp-indigo, var(--primary)) 9%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      46% 92% at 52% 132%,
+      color-mix(in oklch, var(--sp-indigo, var(--primary)) 6%, transparent),
+      transparent 72%
+    ),
+    radial-gradient(
+      64% 88% at 88% 122%,
+      color-mix(in oklch, var(--sp-celadon, var(--secondary)) 7%, transparent),
+      transparent 70%
+    );
+  mask-image: linear-gradient(to bottom, #000 0%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 100%);
+  opacity: 0.85;
+}
+
+/* 夜里纸是深色，纹路要更淡，否则像脏 */
+.dark [data-theme-preset='starpost'] .sp-surface::before {
+  background:
+    repeating-linear-gradient(
+      to right,
+      color-mix(in oklch, var(--foreground) 3%, transparent) 0 1px,
+      transparent 1px 40px
+    ),
+    radial-gradient(
+      ellipse 120% 60% at 50% -10%,
+      color-mix(in oklch, var(--sp-indigo, var(--primary)) 10%, transparent),
+      transparent 62%
+    );
+}
+
+.dark [data-theme-preset='starpost'] .sp-surface-wash {
+  opacity: 0.55;
+}
+
+/* ── 4 · 内容层要盖在纸上面 ───────────────────────────────────────────────
+ * 纸是 fixed 的 z-index:0，控制台本身需要建立自己的层叠上下文。 */
+[data-theme-preset='starpost'] [data-slot='sidebar-wrapper'] {
+  position: relative;
+  z-index: 2;
+}
+
+/* SearchProvider / LayoutProvider 包裹层也要在纸面之上 */
+[data-theme-preset='starpost'] #root {
+  position: relative;
+  z-index: 2;
+}
+
+/* 侧栏与内容区用半透明纸色，让底层的界格与远山透上来一点 */
+[data-theme-preset='starpost'] [data-slot='sidebar-inner'] {
+  background-color: color-mix(in oklch, var(--background) 62%, transparent);
+}
+
+[data-theme-preset='starpost'] [data-slot='sidebar-inset'] {
+  /* 55% —— 再高纸底就被盖平了，再低数据表开始发灰。
+     目标：界格与远山「看得出，但不干扰读数字」。 */
+  background-color: color-mix(in oklch, var(--background) 55%, transparent);
+}
+
+/* 页面里的卡片再透一层，但比内容区更实，保证表格可读 */
+[data-theme-preset='starpost'] [data-slot='card'] {
+  background-color: color-mix(in oklch, var(--card) 88%, transparent);
+}
+
+/* 顶栏也透，但要留住分隔 */
+[data-theme-preset='starpost'] header[data-slot='navbar'] {
+  background-color: color-mix(in oklch, var(--background) 80%, transparent);
+  border-bottom: 1px solid var(--sp-rule-soft);
+}

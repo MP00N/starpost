@@ -1,0 +1,190 @@
+/**
+ * 页面骨架 — the parts every inner page shares.
+ *
+ * s3ai's lesson: consistency comes from the frame, not from rebuilding 20 pages.
+ * These rules target only shared structure, so channels, users, logs, models and
+ * settings all change at once:
+ *
+ *   驿头     the page title becomes a serif heading with a seal-mark and a
+ *            云头-style hairline beneath it
+ *   筛条     the filter row gets a hairline instead of floating inputs
+ *   表格     header is a 界格 band, rows are ruled, numbers are tabular
+ *   分页     flattened, mono figures
+ *   表单     underline-only inputs with a vermilion focus rule
+ *   开关     squared track, vermilion when on
+ */
+
+/* ── 驿头 ─────────────────────────────────────────────────────────────────
+ * The stock title is a 16px bold h2 with nothing around it. Every page gets the
+ * same treatment: small seal-mark, serif title, hairline under the whole block. */
+[data-theme-preset='starpost'] [data-slot='page-title'] {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-serif, ui-serif, Georgia, serif);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  font-size: clamp(19px, 1.9vw, 25px);
+  line-height: 1.2;
+}
+
+/* 小方印：全站统一一个「驿」字，作为页面开篇记号 */
+[data-theme-preset='starpost'] [data-slot='page-title']::before {
+  content: '驿';
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  font-family: var(--font-serif, ui-serif, Georgia, serif);
+  font-size: 11px;
+  line-height: 1;
+  letter-spacing: 0;
+  color: var(--sp-seal-ink);
+  border: 1px solid color-mix(in oklch, var(--sp-seal-ink) 55%, transparent);
+  transform: rotate(-2deg);
+}
+
+/* 标题行整体压一条发丝线，像驿头下的横档 */
+[data-theme-preset='starpost'] [data-slot='page-head'] {
+  border-bottom: 1px solid var(--sp-rule-soft);
+  padding-bottom: 8px;
+  margin-bottom: 2px;
+}
+
+/* ── 表格：账本 ─────────────────────────────────────────────────────────── */
+[data-theme-preset='starpost'] [data-slot='table-header'] {
+  background: color-mix(in oklch, var(--foreground) 3.5%, transparent);
+}
+
+[data-theme-preset='starpost'] [data-slot='table-head'] {
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+  border-bottom: 1px solid var(--sp-rule-soft);
+}
+
+[data-theme-preset='starpost'] [data-slot='table-row'] {
+  border-top: 1px solid var(--sp-kaige-global);
+}
+
+/* 斑马纹去掉，改用极淡的悬停朱砂 */
+[data-theme-preset='starpost'] [data-slot='table-row']:nth-child(even) {
+  background: transparent;
+}
+
+[data-theme-preset='starpost'] [data-slot='table-row']:hover {
+  background: color-mix(in oklch, var(--sp-seal-ink) 4%, transparent);
+}
+
+[data-theme-preset='starpost'] [data-slot='table-cell'] {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── 分页 ───────────────────────────────────────────────────────────────── */
+[data-theme-preset='starpost'] [data-slot='pagination-link'] {
+  border-radius: 2px;
+  font-variant-numeric: tabular-nums;
+}
+
+[data-theme-preset='starpost'] [data-slot='pagination-link'][aria-current='page'] {
+  background: var(--sp-seal-ink);
+  color: var(--background);
+  border-color: var(--sp-seal-ink);
+}
+
+/* ── 表单：写在格纸上 ───────────────────────────────────────────────────── */
+[data-theme-preset='starpost'] [data-slot='input'],
+[data-theme-preset='starpost'] [data-slot='textarea'],
+[data-theme-preset='starpost'] [data-slot='select-trigger'] {
+  background: transparent;
+  border-width: 0 0 1px;
+  border-color: var(--sp-rule-soft);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+[data-theme-preset='starpost'] [data-slot='input']:focus-visible,
+[data-theme-preset='starpost'] [data-slot='textarea']:focus-visible,
+[data-theme-preset='starpost'] [data-slot='select-trigger']:focus-visible,
+[data-theme-preset='starpost'] [data-slot='input']:focus,
+[data-theme-preset='starpost'] [data-slot='textarea']:focus {
+  border-bottom-color: var(--sp-seal-ink);
+  box-shadow: 0 1px 0 0 var(--sp-seal-ink);
+  outline: none;
+}
+
+[data-theme-preset='starpost'] label {
+  letter-spacing: 0.02em;
+}
+
+/* ── 开关与复选：方硬，开启用朱砂 ────────────────────────────────────────── */
+/* 开关就是圆的。之前把它一起压成方角是把「方硬」用过头了：
+   一个圆轨 + 圆钮是开关的通用形状，压方会让人认不出这是开关。 */
+[data-theme-preset='starpost'] [data-slot='switch'] {
+  border-radius: 9999px;
+}
+
+[data-theme-preset='starpost'] [data-slot='switch-thumb'] {
+  border-radius: 9999px;
+}
+
+[data-theme-preset='starpost'] [data-slot='switch'][data-state='checked'] {
+  background-color: var(--sp-seal-ink);
+}
+
+[data-theme-preset='starpost'] [data-slot='checkbox'] {
+  border-radius: 1px;
+}
+
+[data-theme-preset='starpost'] [data-slot='checkbox'][data-state='checked'] {
+  background-color: var(--sp-seal-ink);
+  border-color: var(--sp-seal-ink);
+}
+
+/* ── 标签页：下划线式，不用药丸 ─────────────────────────────────────────── */
+[data-theme-preset='starpost'] [data-slot='tabs-list'] {
+  background: transparent;
+  border-bottom: 1px solid var(--sp-rule-soft);
+  border-radius: 0;
+  padding: 0;
+  gap: 18px;
+}
+
+[data-theme-preset='starpost'] [data-slot='tabs-trigger'] {
+  border-radius: 0;
+  padding: 6px 0;
+  font-size: 12.5px;
+  letter-spacing: 0.02em;
+}
+
+[data-theme-preset='starpost'] [data-slot='tabs-trigger'][data-state='active'] {
+  background: transparent;
+  box-shadow: inset 0 -2px 0 0 var(--sp-seal-ink);
+  color: var(--foreground);
+}
+
+/* ── Toast / 提示：方角，发丝边 ─────────────────────────────────────────── */
+[data-theme-preset='starpost'] [data-sonner-toast],
+[data-theme-preset='starpost'] [data-slot='alert'] {
+  border-radius: 2px;
+  border: 1px solid var(--sp-rule-soft);
+  box-shadow: 0 10px 28px -26px color-mix(in oklch, var(--foreground) 60%, transparent);
+}
+
+/* ── 徽标：小字宽距，方角 ───────────────────────────────────────────────── */
+[data-theme-preset='starpost'] [data-slot='badge'] {
+  border-radius: 2px;
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  font-weight: 500;
+}
+
+/* ── 骨架屏：纸色而不是灰 ───────────────────────────────────────────────── */
+[data-theme-preset='starpost'] [data-slot='skeleton'] {
+  border-radius: 1px;
+  background: color-mix(in oklch, var(--foreground) 5%, transparent);
+}

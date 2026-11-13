@@ -1,0 +1,651 @@
+/*
+Copyright (C) 2023-2026 QuantumNous
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+For commercial licensing, please contact support@quantumnous.com
+*/
+
+/*
+ * 星驿 StarPost.
+ *
+ * Two systems are fused here and they must not fight:
+ *
+ *   MD3 supplies structure — semantic surface tiers, a pill radius, and the
+ *   three standard motion curves. Colour always comes from the active theme,
+ *   so switching preset repaints the whole page.
+ *
+ *   水墨 supplies the drawing — 界格 ruling, 云头 rules, 朱文印 and 远山.
+ *   These are shapes and hairlines, never colours, so they survive a theme
+ *   change and read as 淡墨 on paper or 焦墨 at night.
+ */
+
+.sp-page {
+  /* 朱砂 — a seal is red in every century, so this one stays constant. */
+  --sp-seal-ink: oklch(0.552 0.192 27);
+  --sp-rule: color-mix(in oklch, var(--foreground) 14%, transparent);
+  --sp-rule-soft: color-mix(in oklch, var(--foreground) 7%, transparent);
+  --sp-kaige: color-mix(in oklch, var(--foreground) 3.5%, transparent);
+
+  /* MD3 motion. standard is for state changes, emphasized for entrances. */
+  --sp-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --sp-ease-emphasized: cubic-bezier(0.05, 0.7, 0.1, 1);
+}
+
+.dark .sp-page {
+  --sp-seal-ink: oklch(0.688 0.176 29);
+  --sp-rule: color-mix(in oklch, var(--foreground) 16%, transparent);
+  --sp-rule-soft: color-mix(in oklch, var(--foreground) 9%, transparent);
+  --sp-kaige: color-mix(in oklch, var(--foreground) 4.5%, transparent);
+}
+
+/* ── 界格 ───────────────────────────────────────────────────────────────
+ * Writing paper: a double frame with vertical columns. The columns are the
+ * strongest Chinese signal on the page and they double as a layout grid, so
+ * they are structure rather than decoration.
+ */
+.sp-kaige-page {
+  inset: 0;
+  border: 0;
+}
+
+.sp-kaige-page::after {
+  inset: 14px;
+  border: 1px solid var(--sp-rule-soft);
+}
+
+.sp-kaige {
+  position: absolute;
+  inset: 14px;
+  border: 1px solid var(--sp-rule-soft);
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--sp-kaige) 0 1px,
+    transparent 1px 96px
+  );
+  background-position: center;
+  pointer-events: none;
+}
+
+.sp-kaige::after {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border: 1px solid var(--sp-kaige);
+}
+
+/* 纸纹：只做质感，不参与排版 */
+.sp-grain {
+  opacity: 0.045;
+  mix-blend-mode: multiply;
+}
+
+.dark .sp-grain {
+  opacity: 0.055;
+  mix-blend-mode: screen;
+}
+
+.sp-provider {
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: var(--muted-foreground);
+  opacity: 0.85;
+  transition: opacity 150ms var(--sp-ease-standard);
+}
+
+.sp-provider:hover {
+  opacity: 1;
+}
+
+.sp-provider-name {
+  font-weight: 500;
+}
+
+/* 山影：底边淡入，永远不会出现硬切口 */
+.sp-ink-layer {
+  z-index: 0;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #000 42%,
+    #000 100%
+  );
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 42%, #000 100%);
+}
+
+/* 全站气质：星驿预设下，后台主体也铺同一套界格竖线。
+ * 这里用现有的 data-slot 属性做钩子，不去改任何布局组件。 */
+[data-theme-preset='starpost'] [data-slot='sidebar-inset'] {
+  background-image: repeating-linear-gradient(
+    to right,
+    color-mix(in oklch, var(--foreground) 3%) 0 1px,
+    transparent 1px 96px
+  );
+  background-position: center;
+}
+
+/* ── Type ─────────────────────────────────────────────────────────────── */
+.sp-display {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.28;
+}
+
+.sp-eyebrow {
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.sp-hairline {
+  display: inline-block;
+  height: 1px;
+  background: var(--sp-rule);
+}
+
+.sp-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid var(--sp-seal-ink);
+  border-radius: 2px;
+  color: var(--sp-seal-ink);
+  font-family: var(--font-serif);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  flex: none;
+}
+
+/* ── 云头 rule ────────────────────────────────────────────────────────── */
+.sp-cloud-end {
+  color: var(--sp-rule);
+}
+
+.sp-rule-line {
+  background: var(--sp-rule);
+}
+
+/* ── The round diagram ────────────────────────────────────────────────── */
+.sp-map-svg {
+  display: block;
+}
+
+.sp-ring {
+  fill: none;
+  stroke: var(--sp-rule);
+  stroke-width: 1;
+}
+
+.sp-cloud {
+  fill: none;
+  stroke: var(--sp-rule);
+  stroke-width: 1;
+  stroke-linecap: round;
+  stroke-dasharray: 1.5 15;
+  opacity: 0.9;
+}
+
+.sp-cloud-outer {
+  stroke-dasharray: 1 23;
+  opacity: 0.55;
+}
+
+.sp-cloud-ring {
+  transform-origin: 400px 400px;
+  animation: sp-spin 120s linear infinite;
+}
+
+.sp-road {
+  fill: none;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  opacity: 0.6;
+}
+
+.sp-node {
+  fill: var(--muted-foreground);
+  opacity: 0.45;
+}
+
+.sp-provider-halo {
+  fill: currentColor;
+  opacity: 0.18;
+}
+
+.sp-map-label {
+  fill: var(--muted-foreground);
+  font-size: 17px;
+  letter-spacing: 0.04em;
+}
+
+.sp-map-label-strong {
+  fill: var(--foreground);
+  font-size: 17.5px;
+  font-weight: 500;
+  opacity: 0.82;
+}
+
+.sp-courier {
+  filter: drop-shadow(0 0 5px currentColor);
+}
+
+.sp-courier-halo {
+  fill: currentColor;
+  opacity: 0.16;
+}
+
+/* ── 印 ───────────────────────────────────────────────────────────────── */
+.sp-seal-face {
+  fill: color-mix(in oklch, var(--sp-seal-ink) 13%, var(--background));
+  stroke: var(--sp-seal-ink);
+  stroke-width: 2.6;
+}
+
+.sp-seal-rule {
+  fill: none;
+  stroke: var(--sp-seal-ink);
+  stroke-width: 1;
+  opacity: 0.5;
+  stroke-dasharray: 3 3;
+}
+
+.sp-seal-char {
+  font-family: var(--font-serif);
+  font-size: 62px;
+  font-weight: 600;
+  fill: var(--sp-seal-ink);
+  letter-spacing: 0;
+}
+
+/* ── 驿报 ─────────────────────────────────────────────────────────────── */
+.sp-bulletin {
+  border-block: 1px solid var(--sp-rule);
+  background: transparent;
+}
+
+.sp-bulletin-row {
+  display: grid;
+  grid-template-columns: 1.7rem minmax(0, 1fr) 8rem 4.5rem 3.5rem;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.55rem 0;
+  border-top: 1px solid var(--sp-kaige);
+  font-variant-numeric: tabular-nums;
+}
+
+.sp-bulletin-row:first-child {
+  border-top: 0;
+}
+
+.sp-mono {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.01em;
+}
+
+@keyframes sp-row-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.sp-row-enter {
+  animation: sp-row-in 280ms var(--sp-ease-emphasized) both;
+}
+
+/* ── 通关文牒 ─────────────────────────────────────────────────────────── */
+.sp-pass {
+  position: relative;
+  border: 1px solid var(--sp-rule);
+  background: var(--background);
+}
+
+.sp-pass::before {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border: 1px solid var(--sp-rule-soft);
+  pointer-events: none;
+}
+
+.sp-pass-code {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 2;
+}
+
+.sp-pass-struck {
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+  color: var(--muted-foreground);
+}
+
+.sp-stamp {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 88px;
+  height: 88px;
+  border-radius: 3px;
+  border: 2.5px solid var(--sp-seal-ink);
+  color: var(--sp-seal-ink);
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-align: center;
+  line-height: 1.15;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sp-stamp[data-visible='true'] {
+  animation: sp-stamp 320ms var(--sp-ease-emphasized) both;
+}
+
+@keyframes sp-stamp {
+  0% {
+    opacity: 0;
+    transform: rotate(-14deg) scale(1.45);
+  }
+  70% {
+    opacity: 0.95;
+    transform: rotate(-8deg) scale(0.98);
+  }
+  100% {
+    opacity: 0.9;
+    transform: rotate(-8deg) scale(1);
+  }
+}
+
+/* ── 驿规 ─────────────────────────────────────────────────────────────── */
+.sp-milestone + .sp-milestone {
+  border-left: 1px solid var(--sp-kaige);
+}
+
+@media (max-width: 767px) {
+  .sp-milestone + .sp-milestone {
+    border-left: 0;
+    border-top: 1px solid var(--sp-kaige);
+  }
+}
+
+/* ── Ink drift ────────────────────────────────────────────────────────── */
+@keyframes sp-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes sp-ink-far {
+  from {
+    transform: translate3d(-1.6%, 0, 0) scale(1.03);
+  }
+  to {
+    transform: translate3d(1.6%, 0, 0) scale(1.03);
+  }
+}
+
+@keyframes sp-ink-mid {
+  from {
+    transform: translate3d(1.4%, 0, 0);
+  }
+  to {
+    transform: translate3d(-1.4%, 0, 0);
+  }
+}
+
+@keyframes sp-ink-near {
+  from {
+    transform: translate3d(-0.9%, 0, 0);
+  }
+  to {
+    transform: translate3d(0.9%, 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sp-cloud-ring,
+  .sp-row-enter,
+  .sp-stamp {
+    animation: none !important;
+  }
+}
+
+/* ── 液态玻璃 ───────────────────────────────────────────────────────────
+ * Aimed at Apple's Liquid Glass, whose defining property is *displacement*:
+ * the material compresses and bends what is behind it, hardest at the rim.
+ *
+ * backdrop-filter cannot do that — it only blurs — so the panel carries a
+ * repainted copy of the hero's own decoration and runs the SVG displacement
+ * map #sp-lens over it. That copy is pure gradient and grid, so displacing it
+ * costs nothing in accessibility terms: no text is distorted.
+ *
+ * Layers, bottom to top: backdrop blur → refracted copy → chromatic rim →
+ * specular bands.
+ */
+.sp-glass {
+  position: relative;
+  border-radius: 28px;
+  background: linear-gradient(
+    155deg,
+    color-mix(in oklch, var(--card) 26%, transparent) 0%,
+    color-mix(in oklch, var(--background) 34%, transparent) 55%,
+    color-mix(in oklch, var(--card) 20%, transparent) 100%
+  );
+  -webkit-backdrop-filter: blur(10px) saturate(150%);
+  backdrop-filter: blur(10px) saturate(150%);
+  box-shadow:
+    inset 0 1px 0 0 color-mix(in oklch, white 60%, transparent),
+    inset 0 -14px 28px -20px color-mix(in oklch, var(--foreground) 45%, transparent),
+    0 34px 80px -42px color-mix(in oklch, var(--foreground) 65%, transparent);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* The refracted copy. The filter lives in <LensFilter />. */
+.sp-glass-lens {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  filter: url(#sp-lens);
+  opacity: 0.95;
+}
+
+.sp-glass-lens::before {
+  content: '';
+  position: absolute;
+  inset: -12%;
+  background:
+    radial-gradient(
+      ellipse 45% 40% at 62% 24%,
+      color-mix(in oklch, var(--chart-3) 78%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 38% 34% at 30% 70%,
+      color-mix(in oklch, var(--chart-1) 62%, transparent),
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse 30% 26% at 78% 82%,
+      color-mix(in oklch, var(--chart-2) 45%, transparent),
+      transparent 72%
+    );
+}
+
+.sp-glass-lens::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(
+      to right,
+      color-mix(in oklch, var(--foreground) 9%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in oklch, var(--foreground) 9%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 72px 72px;
+  opacity: 0.5;
+}
+
+/* Chromatic rim: the colour split at the edge of thick glass. */
+.sp-glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  padding: 1px;
+  pointer-events: none;
+  background: conic-gradient(
+    from 210deg at 50% 50%,
+    color-mix(in oklch, var(--chart-3) 55%, transparent) 0deg,
+    color-mix(in oklch, white 70%, transparent) 60deg,
+    color-mix(in oklch, var(--chart-1) 45%, transparent) 150deg,
+    transparent 210deg,
+    color-mix(in oklch, var(--chart-3) 40%, transparent) 300deg,
+    color-mix(in oklch, var(--chart-3) 55%, transparent) 360deg
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  opacity: 0.85;
+}
+
+/* Specular: broad catch top-left, thin line bottom-right. */
+.sp-glass::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse 60% 42% at 22% 0%,
+      color-mix(in oklch, white 52%, transparent),
+      transparent 62%
+    ),
+    linear-gradient(
+      200deg,
+      transparent 62%,
+      color-mix(in oklch, white 22%, transparent) 84%,
+      transparent 92%
+    );
+  opacity: 0.75;
+}
+
+.sp-glass > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* The lens is the most expensive thing on this page. Phones and reduced-motion
+ * readers get a flat tint instead: a 140%-surface displacement filter running
+ * during a scroll is not worth any amount of prettiness. */
+@media (max-width: 767px), (prefers-reduced-motion: reduce) {
+  .sp-glass {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: color-mix(in oklch, var(--card) 82%, var(--background));
+  }
+
+  .sp-glass-lens {
+    display: none;
+  }
+}
+
+
+/* ── 全站外壳：把驿站语言铺进控制台 ─────────────────────────────────────
+ * 首页做了纸墨与界格，控制台却还是原版，落差很大。这一层只在 starpost
+ * 预设下生效，并且只改「表面」——不动布局、不动间距体系，避免和组件自身
+ * 的响应式打架。
+ *
+ * 三件事：
+ *   1. 侧栏从「浮起的白色面板」改成「一张纸」，用一条发丝线分隔；
+ *   2. 选中项不再是圆角药丸，改成左缘一道朱砂短线 —— 印章盖在边上的感觉，
+ *      也更省视觉噪声；
+ *   3. 内容区铺竖界格，和首页同一套 96px 列。
+ */
+[data-theme-preset='starpost'] {
+  --sp-seal-ink: oklch(0.552 0.192 27);
+  --sp-rule-soft: color-mix(in oklch, var(--foreground) 7%, transparent);
+  --sp-kaige-global: color-mix(in oklch, var(--foreground) 3.5%, transparent);
+}
+
+.dark [data-theme-preset='starpost'] {
+  --sp-seal-ink: oklch(0.688 0.176 29);
+  --sp-rule-soft: color-mix(in oklch, var(--foreground) 9%, transparent);
+  --sp-kaige-global: color-mix(in oklch, var(--foreground) 4.5%, transparent);
+}
+
+/* 侧栏：一张纸，不是一块玻璃 */
+[data-theme-preset='starpost'] [data-slot='sidebar-inner'] {
+  background: color-mix(in oklch, var(--background) 94%, var(--foreground));
+  border-right: 1px solid var(--sp-rule-soft);
+}
+
+/* 选中项：左缘一道朱砂线，替掉圆角药丸 */
+[data-theme-preset='starpost'] [data-sidebar='menu-button'] {
+  border-radius: 3px;
+  box-shadow: none;
+}
+
+[data-theme-preset='starpost'] [data-sidebar='menu-button'][data-active='true'] {
+  background: color-mix(in oklch, var(--sp-seal-ink) 7%, transparent);
+  box-shadow: inset 2px 0 0 var(--sp-seal-ink);
+  font-weight: 500;
+}
+
+/* 内容区：竖界格，和首页同一套列宽 */
+[data-theme-preset='starpost'] [data-slot='sidebar-inset'] {
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--sp-kaige-global) 0 1px,
+    transparent 1px 96px
+  );
+  background-position: center top;
+}
+
+/* 卡片与表格：用发丝线代替阴影，符合「层级靠明度不靠投影」的规则 */
+[data-theme-preset='starpost'] [data-slot='card'] {
+  border: 1px solid var(--sp-rule-soft);
+  box-shadow: none;
+}
+
+[data-theme-preset='starpost'] table tbody tr {
+  border-top: 1px solid var(--sp-kaige-global);
+}
