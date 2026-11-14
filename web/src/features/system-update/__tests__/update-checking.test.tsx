@@ -808,3 +808,35 @@ describe('update cache and scheduling', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 })
+
+describe('builds that do not track upstream releases', () => {
+  test.each([
+    'starpost-2026.11.14',
+    'dev',
+  ])('skips the GitHub check and shows the version for %s', async (version) => {
+    client.setQueryData(STATUS_QUERY_KEY, { version })
+    const hook = renderHook(useSystemUpdate, { wrapper: Wrapper })
+    await waitFor(() => expect(hook.result.current.currentVersion).toBe(version))
+    expect(hook.result.current.tracksUpstream).toBe(false)
+    expect(hook.result.current.shouldNotify).toBe(false)
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  test('renders the version label without announcing an update', async () => {
+    client.setQueryData(STATUS_QUERY_KEY, { version: 'starpost-2026.11.14' })
+    render(<SystemUpdateAction presentation='version' />, { wrapper: Wrapper })
+    const button = await screen.findByRole('button', {
+      name: 'System updates, current version: starpost-2026.11.14',
+    })
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(within(button).queryByText('Update available')).not.toBeInTheDocument()
+  })
+
+  test('still checks when the build reports a semver version', async () => {
+    client.setQueryData(STATUS_QUERY_KEY, { version: 'v1.0.0-rc.35' })
+    const hook = renderHook(useSystemUpdate, { wrapper: Wrapper })
+    await waitFor(() => expect(hook.result.current.hasUpdate).toBe(true))
+    expect(hook.result.current.tracksUpstream).toBe(true)
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+})

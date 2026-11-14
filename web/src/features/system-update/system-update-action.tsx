@@ -56,19 +56,26 @@ function AdminSystemUpdateAction(props: SystemUpdateActionProps) {
   const compact = props.compact ?? true
   const versionPresentation = props.presentation === 'version'
   const version = update.currentVersion?.trim() || t('Unknown version')
-  const label = update.shouldNotify
-    ? t('Update available')
-    : t('Check for updates')
+  let label = t('Check for updates')
+  if (update.shouldNotify) {
+    label = t('Update available')
+  } else if (!update.tracksUpstream) {
+    label = t('Current version')
+  }
   let description = label
   if (update.shouldNotify) {
     description = t('New version available: {{version}}', {
       version: update.release?.tag_name,
     })
+  } else if (!update.tracksUpstream) {
+    // A separately maintained build has no upstream release to compare
+    // against, so the control reads as a version label, not an action.
+    description = t('System updates, current version: {{version}}', { version })
   } else if (update.snapshot?.error) {
     description = t('Failed to check for updates')
   }
   const updateAnnouncement = update.shouldNotify ? description : ''
-  if (versionPresentation) {
+  if (versionPresentation && update.tracksUpstream) {
     const versionDescription = t(
       'System updates, current version: {{version}}',
       { version }
@@ -78,6 +85,12 @@ function AdminSystemUpdateAction(props: SystemUpdateActionProps) {
         ? `${versionDescription}\n${description}`
         : versionDescription
   }
+  let actionIcon = RefreshIcon
+  if (update.shouldNotify) {
+    actionIcon = ArrowUp01Icon
+  } else if (!update.tracksUpstream) {
+    actionIcon = InformationCircleIcon
+  }
 
   let triggerContent = (
     <>
@@ -85,7 +98,7 @@ function AdminSystemUpdateAction(props: SystemUpdateActionProps) {
         <Spinner data-icon='inline-start' aria-hidden='true' />
       ) : (
         <HugeiconsIcon
-          icon={update.shouldNotify ? ArrowUp01Icon : RefreshIcon}
+          icon={actionIcon}
           data-icon='inline-start'
           aria-hidden='true'
         />

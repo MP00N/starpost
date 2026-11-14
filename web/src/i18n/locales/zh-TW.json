@@ -7870,6 +7870,7 @@
     "{{n}} models taken off the shelves for loss": "{{n}} 個模型因虧損已下架",
     "{{n}} roads out": "{{n}} 條去路",
     "{{n}} rows are on zero-priced models — zero quota is expected there.": "{{n}} 條記錄屬於零價模型，額度為 0 是正常的。",
-    "{{n}}d": "{{n}} 天"
+    "{{n}}d": "{{n}} 天",
+    "This build is maintained separately and does not follow upstream releases.": "此版本獨立維護，不跟隨上游發佈更新。"
   }
 }

@@ -65,6 +65,21 @@ export function parseSystemVersion(
   }
 }
 
+/**
+ * Reports whether a running build tracks the upstream release series.
+ *
+ * StarPost builds carry their own version string (`starpost-<date>.<sha>`)
+ * because they are cut from this fork, not from a QuantumNous tag. Comparing
+ * such a version against upstream tags is meaningless, and the GitHub check
+ * cannot even be reached from many networks, so the console shows the version
+ * without offering an upstream upgrade.
+ */
+export function tracksUpstreamReleases(
+  version: string | null | undefined
+): boolean {
+  return parseSystemVersion(version) !== null
+}
+
 export function compareSystemVersions(
   left: string | null | undefined,
   right: string | null | undefined

@@ -7870,6 +7870,7 @@
     "{{n}} models taken off the shelves for loss": "{{n}} models taken off the shelves for loss",
     "{{n}} roads out": "{{n}} roads out",
     "{{n}} rows are on zero-priced models — zero quota is expected there.": "{{n}} rows are on zero-priced models — zero quota is expected there.",
-    "{{n}}d": "{{n}}d"
+    "{{n}}d": "{{n}}d",
+    "This build is maintained separately and does not follow upstream releases.": "このビルドは独自に保守されており、上流のリリースには追従しません。"
   }
 }

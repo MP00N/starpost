@@ -38,7 +38,7 @@ import {
   UpdateCheckError,
   type UpdateCheckErrorCode,
 } from './api'
-import { compareSystemVersions } from './releases'
+import { compareSystemVersions, tracksUpstreamReleases } from './releases'
 import {
   subscribeSystemUpdatePreferences,
   useSystemUpdatePreferencesStore,
@@ -137,9 +137,23 @@ export function useSystemUpdate() {
   const online = useSyncExternalStore(onlineManager.subscribe, isBrowserOnline)
   const { status } = useStatus()
   const queryClient = useQueryClient()
+  const version = status?.version?.trim()
+  const currentVersion =
+    version === 'v0.0.0' || version === '0.0.0'
+      ? undefined
+      : version || undefined
+  // A build cut from this fork reports its own version string, which never
+  // matches an upstream tag. Skipping the request keeps the console honest on
+  // networks where api.github.com is unreachable, and avoids offering an
+  // "upgrade" that would replace the fork with the upstream release. A build
+  // with no version at all keeps the upstream behaviour: there is nothing to
+  // identify it by, so the operator still gets the release listing.
+  const tracksUpstream = currentVersion
+    ? tracksUpstreamReleases(currentVersion)
+    : true
   const query = useQuery({
     ...systemUpdateQueryOptions,
-    enabled: isAdmin && visible && online,
+    enabled: isAdmin && visible && online && tracksUpstream,
   })
 
   useEffect(() => {
@@ -148,11 +162,6 @@ export function useSystemUpdate() {
     }
   }, [isAdmin, queryClient])
 
-  const version = status?.version?.trim()
-  const currentVersion =
-    version === 'v0.0.0' || version === '0.0.0'
-      ? undefined
-      : version || undefined
   const release = query.data?.release ?? null
   const comparison = compareSystemVersions(currentVersion, release?.tag_name)
   const hasUpdate = comparison === -1
@@ -174,7 +183,7 @@ export function useSystemUpdate() {
   }
 
   const checkNow = async () => {
-    if (!isAdmin || !online) return
+    if (!isAdmin || !online || !tracksUpstream) return
     const result = await query.refetch({ cancelRefetch: false })
     if (result.data?.error) {
       handleServerError(new Error(getUpdateErrorMessage(result.data.error, t)))
@@ -183,6 +192,7 @@ export function useSystemUpdate() {
 
   return {
     currentVersion,
+    tracksUpstream,
     release,
     comparison,
     hasUpdate,
