@@ -1,0 +1,348 @@
+/*
+Copyright (C) 2023-2026 QuantumNous
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+For commercial licensing, please contact support@quantumnous.com
+*/
+
+/*
+ * 驿站动效语法.
+ *
+ * This file is the single source of truth for timing, easing, and the
+ * structural gestures (seal chips, broken road, in-flight line). Nothing here
+ * animates layout: every keyframe touches transform or opacity only, so the
+ * browser never reflows and the compositor does all the work.
+ *
+ * The rule that shapes the whole file: 驿站 is a *communication* metaphor, not
+ * a skin. High-frequency operations get standard 100–150ms state feedback and
+ * nothing else. The named gestures below belong to low-frequency events —
+ * verifying a credential, a request leaving, a result landing, a road failing.
+ */
+
+:root {
+  /* Durations ------------------------------------------------------------ */
+  --sp-dur-touch: 90ms; /* touch feedback */
+  --sp-dur-micro: 100ms; /* switches, badges */
+  --sp-dur-state: 150ms; /* standard state change, high-frequency */
+  --sp-dur-enter: 220ms; /* small element entering */
+  --sp-dur-exit: 200ms; /* small element leaving */
+  --sp-dur-swap: 200ms; /* 换马 — label swap */
+  --sp-dur-gate: 340ms; /* 过驿门 — page/panel transition */
+
+  /* Easing --------------------------------------------------------------- */
+  --sp-ease-enter: cubic-bezier(0.23, 1, 0.32, 1); /* appear */
+  --sp-ease-exit: cubic-bezier(0.4, 0, 1, 1); /* disappear */
+  --sp-ease-travel: cubic-bezier(0.77, 0, 0.175, 1); /* in-screen movement */
+  --sp-ease-loop: linear; /* continuous progress */
+
+  /* Seal geometry -------------------------------------------------------- */
+  --sp-seal-size: 36px;
+  --sp-seal-edge: 2px;
+}
+
+/* Mobile: everything a notch quicker, per the spec (×0.8). */
+@media (max-width: 640px) {
+  :root {
+    --sp-dur-enter: 176ms;
+    --sp-dur-exit: 160ms;
+    --sp-dur-swap: 160ms;
+    --sp-dur-gate: 272ms;
+  }
+}
+
+/* ── 驿印 — a result lands ────────────────────────────────────────────────
+ * Border and text only; no fill, no glow, no rotation. The chips are cut with
+ * clip-path so the edge looks eaten by paper rather than shaded.
+ */
+.sp-seal-stamp {
+  display: inline-grid;
+  place-items: center;
+  width: var(--sp-seal-size);
+  height: var(--sp-seal-size);
+  border: var(--sp-seal-edge) solid currentColor;
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  text-transform: lowercase;
+  /* Four small irregular bites, one per corner. */
+  clip-path: polygon(
+    0 6%,
+    4% 3%,
+    2% 0,
+    96% 0,
+    99% 4%,
+    100% 8%,
+    100% 93%,
+    96% 96%,
+    98% 100%,
+    6% 100%,
+    3% 97%,
+    0 94%
+  );
+}
+
+.sp-seal-stamp[data-env='prod'] {
+  color: oklch(0.552 0.192 27);
+}
+
+.sp-seal-stamp[data-env='staging'] {
+  color: oklch(0.585 0.135 66);
+}
+
+.sp-seal-stamp[data-env='dev'] {
+  color: var(--muted-foreground);
+}
+
+@keyframes sp-seal-land {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.sp-seal-stamp[data-entering='true'] {
+  animation: sp-seal-land 140ms var(--sp-ease-enter) both;
+}
+
+/* ── 驿路线 — a request is in flight ──────────────────────────────────────
+ * A 1px line at the head of the result area. Progress is scaleX, never width.
+ */
+.sp-route-line {
+  position: relative;
+  height: 1px;
+  overflow: hidden;
+  background: color-mix(in oklch, var(--foreground) 12%, transparent);
+}
+
+.sp-route-line::after {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 100%;
+  background: currentColor;
+  transform-origin: 0 50%;
+  animation: sp-route-travel 1.15s var(--sp-ease-loop) infinite;
+}
+
+@keyframes sp-route-travel {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* Return: both ends collapse toward the middle in 150ms. */
+.sp-route-line[data-state='closing']::after {
+  animation: sp-route-close 150ms var(--sp-ease-exit) both;
+  transform-origin: 50% 50%;
+}
+
+@keyframes sp-route-close {
+  from {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  to {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+}
+
+.sp-route-line[data-state='idle']::after {
+  animation: none;
+  transform: scaleX(0);
+}
+
+/* ── 驿路阻断 — the road fails ────────────────────────────────────────────
+ * The break is a one-shot clip-path swap: a sawtooth bite out of the line.
+ * No per-frame shake, no red flashing, no alarm.
+ */
+.sp-road-break {
+  position: relative;
+  height: 1px;
+  background: color-mix(in oklch, var(--destructive) 55%, transparent);
+  clip-path: polygon(
+    0 0,
+    38% 0,
+    40% 100%,
+    41% 0,
+    62% 0,
+    64% 100%,
+    65% 0,
+    100% 0,
+    100% 100%,
+    0 100%
+  );
+  animation: sp-road-appear 1ms var(--sp-ease-exit) both;
+}
+
+@keyframes sp-road-appear {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.sp-road-break[data-fading='true'] {
+  animation: sp-road-fade 200ms var(--sp-ease-exit) both;
+}
+
+@keyframes sp-road-fade {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* ── 过驿门 — a panel passes through the gate ─────────────────────────────
+ * Slide plus fade. No scale, no 3D, no rotation.
+ */
+@keyframes sp-gate-in {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.sp-gate {
+  animation: sp-gate-in var(--sp-dur-gate) var(--sp-ease-enter) both;
+  will-change: transform, opacity;
+}
+
+/* ── 换马 — the environment label changes ────────────────────────────────
+ * Out and in along the same axis so the change reads as one continuous move.
+ */
+@keyframes sp-swap-in {
+  from {
+    opacity: 0;
+    transform: translateX(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes sp-swap-out {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+}
+
+.sp-swap-in {
+  animation: sp-swap-in var(--sp-dur-swap) var(--sp-ease-travel) both;
+}
+
+.sp-swap-out {
+  animation: sp-swap-out var(--sp-dur-swap) var(--sp-ease-travel) both;
+}
+
+/* ── 棨信 — the credential token ─────────────────────────────────────────
+ * Ticks light up one at a time as input arrives. Opacity only.
+ */
+.sp-token-tick {
+  opacity: 0.18;
+  transition: opacity var(--sp-dur-micro) var(--sp-ease-enter);
+}
+
+.sp-token-tick[data-lit='true'] {
+  opacity: 1;
+}
+
+/* ── 验符失败：棨信停住并断开 ──────────────────────────────────────────── */
+@keyframes sp-token-halt {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(6px);
+  }
+}
+
+.sp-token-halt {
+  animation: sp-token-halt var(--sp-dur-enter) var(--sp-ease-exit) both;
+}
+
+/* ── Reduction ───────────────────────────────────────────────────────────
+ * Position, arcs, line travel and any stagger are removed. Opacity cross-fade
+ * survives at half duration; the line falls back to a static bar, which the
+ * component handles by not starting its loop.
+ */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --sp-dur-touch: 45ms;
+    --sp-dur-micro: 50ms;
+    --sp-dur-state: 75ms;
+    --sp-dur-enter: 110ms;
+    --sp-dur-exit: 100ms;
+    --sp-dur-swap: 100ms;
+    --sp-dur-gate: 150ms;
+  }
+
+  .sp-route-line::after {
+    animation: none !important;
+    transform: scaleX(1);
+    opacity: 0.55;
+  }
+
+  .sp-seal-stamp[data-entering='true'] {
+    animation-name: sp-fade-in !important;
+    transform: none !important;
+  }
+
+  .sp-swap-in,
+  .sp-swap-out,
+  .sp-token-halt,
+  .sp-gate {
+    animation-name: sp-fade-in !important;
+    transform: none !important;
+  }
+
+  .sp-gate {
+    animation-name: sp-fade-in !important;
+  }
+}
+
+@keyframes sp-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

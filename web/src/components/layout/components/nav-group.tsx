@@ -18,7 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import { Link, useLocation } from '@tanstack/react-router'
 import { ChevronRight } from 'lucide-react'
-import { type ReactNode, useState, useEffect } from 'react'
+import { type ReactNode, useEffect, useState } from 'react'
 
 import { Badge } from '@/components/ui/badge'
 import {
@@ -55,20 +55,43 @@ import type {
   NavGroup as NavGroupProps,
 } from '../types'
 import { ChatPresetsItem } from './chat-presets-item'
+import { StarPostGroupLabel } from './starpost-sidebar'
 
 /**
  * Sidebar navigation group component
  * Renders a group of navigation items, supporting regular links and collapsible submenus
  */
-export function NavGroup({ title, items }: NavGroupProps) {
+export function NavGroup({ title, items, index }: NavGroupProps & { index?: number }) {
   const { state, isMobile } = useSidebar()
+  const groupIndex = index ?? 0
+  // 渲染期间读 document 是不纯的（oxlint: react/purity），改为在 effect 里
+  // 跟踪 body 上的预设属性。
+  const [isStarPost, setIsStarPost] = useState(false)
+  useEffect(() => {
+    const read = () =>
+      setIsStarPost(
+        document.body.getAttribute('data-theme-preset') === 'starpost'
+      )
+    read()
+    const observer = new MutationObserver(read)
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ['data-theme-preset'],
+    })
+    return () => observer.disconnect()
+  }, [])
   const href = useLocation({ select: (location) => location.href })
 
   return (
     <SidebarGroup className='px-2 py-1'>
-      <SidebarGroupLabel className='text-muted-foreground/70 px-2 text-[11px] font-medium tracking-wider uppercase'>
-        {title}
-      </SidebarGroupLabel>
+      {/* 驿站样式下用竖排序号标签；其他预设保留原生分组标题 */}
+      {isStarPost ? (
+        <StarPostGroupLabel index={groupIndex}>{title}</StarPostGroupLabel>
+      ) : (
+        <SidebarGroupLabel className='text-muted-foreground/70 px-2 text-[11px] font-medium tracking-wider uppercase'>
+          {title}
+        </SidebarGroupLabel>
+      )}
       <SidebarMenu>
         {items.map((item) => {
           const key = `${item.title}-${item.url || item.type}`

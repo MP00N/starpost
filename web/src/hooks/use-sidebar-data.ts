@@ -29,10 +29,12 @@ import {
   MessageSquare,
   PlugZap,
   Radio,
+  Scale,
   ServerCog,
   Settings,
   ShieldCheck,
   Ticket,
+  TrendingUp,
   User,
   Users,
   Wallet,
@@ -132,6 +134,18 @@ export function useSidebarData(badges: SidebarBadges = {}): SidebarData {
         id: 'admin',
         title: t('Admin'),
         items: [
+          {
+            title: t('Reconciliation'),
+            url: '/reconciliation',
+            icon: Scale,
+            // 有待处理异常时在入口上显示条数，否则对账页没人会点进去
+            badge: badges.billingAnomaly,
+          },
+          {
+            title: t('Profit & loss'),
+            url: '/model-profit',
+            icon: TrendingUp,
+          },
           {
             title: t('Channels'),
             url: '/channels',

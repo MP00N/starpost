@@ -72,6 +72,13 @@ var GitHubOAuthEnabled = false
 var LinuxDOOAuthEnabled = false
 var WeChatAuthEnabled = false
 var TelegramOAuthEnabled = false
+
+// CaptchaType selects which human-verification provider guards the auth
+// endpoints. One switch instead of three booleans, so two providers can never
+// be enabled at once and disagree about which token to expect.
+// Values: "none" | "turnstile" | "hcaptcha" | "geetest"
+var CaptchaType = "turnstile"
+
 var TurnstileCheckEnabled = false
 var RegisterEnabled = true
 
@@ -122,6 +129,14 @@ var WeChatServerToken = ""
 var WeChatAccountQRCodeImageURL = ""
 
 var TurnstileSiteKey = ""
+
+// hCaptcha
+var HCaptchaSiteKey = ""
+var HCaptchaSecretKey = ""
+
+// GeeTest v4
+var GeetestCaptchaId = ""
+var GeetestCaptchaKey = ""
 var TurnstileSecretKey = ""
 
 var TelegramBotToken = ""

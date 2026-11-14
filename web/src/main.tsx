@@ -22,6 +22,7 @@ import { StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
 
 import { installBuildMetadata } from '@/lib/build-metadata'
+import { DEFAULT_LOGO } from '@/lib/constants'
 import { applyFaviconToDom } from '@/lib/dom-utils'
 import '@/lib/dayjs'
 import { initializeFrontendCache } from '@/lib/frontend-cache'
@@ -37,6 +38,11 @@ import { routeTree } from './routeTree.gen'
 
 // Styles
 import './styles/index.css'
+import './styles/starpost-motion.css'
+import './styles/starpost-console.css'
+import './styles/starpost-paper.css'
+import './styles/starpost-skeleton.css'
+import './styles/starpost-components.css'
 
 // Ensure VChart theme is initialized before any chart mounts (prevents white default theme flash)
 // VChart theme is driven by our ThemeProvider (html.light/html.dark) via per-chart `theme` prop.
@@ -81,7 +87,9 @@ if (!rootElement) {
     // Cache-first
     const cached = readCachedStatus()
     if (cached?.system_name) apply(cached.system_name as string)
-    if (cached?.logo) applyFaviconToDom(cached.logo as string)
+    // Fall back to the shipped mark so an install that never configured a
+    // logo still shows the product's own icon instead of the upstream file.
+    applyFaviconToDom((cached?.logo as string) || DEFAULT_LOGO)
 
     // Background refresh through the shared cache. This primes ['status']
     // before React mounts, so the root guard and every status consumer reuse
@@ -91,7 +99,7 @@ if (!rootElement) {
       .ensureQueryData(statusQueryOptions)
       .then((s) => {
         if (s?.system_name) apply(s.system_name as string)
-        if (s?.logo) applyFaviconToDom(s.logo as string)
+        applyFaviconToDom((s?.logo as string) || DEFAULT_LOGO)
       })
       .catch(() => {
         /* empty */

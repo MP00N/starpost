@@ -248,6 +248,22 @@ func UpdateOption(c *gin.Context) {
 			common.ApiErrorT(c, "Cannot enable WeChat login. Enter the WeChat login settings first.")
 			return
 		}
+	case "CaptchaType":
+		// Refuse to switch to a provider that has no keys: the auth endpoints
+		// would then reject every login with "verification failed" and look
+		// like a bug rather than a configuration gap.
+		switch option.Value {
+		case "hcaptcha":
+			if common.HCaptchaSiteKey == "" || common.HCaptchaSecretKey == "" {
+				common.ApiErrorT(c, "Cannot switch to hCaptcha. Enter the hCaptcha keys first.")
+				return
+			}
+		case "geetest":
+			if common.GeetestCaptchaId == "" || common.GeetestCaptchaKey == "" {
+				common.ApiErrorT(c, "Cannot switch to GeeTest. Enter the captcha id and key first.")
+				return
+			}
+		}
 	case "TurnstileCheckEnabled":
 		if option.Value == "true" && common.TurnstileSiteKey == "" {
 			common.ApiErrorT(c, "Cannot enable Turnstile verification. Enter the Turnstile settings first.")

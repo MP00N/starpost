@@ -26,6 +26,7 @@ import type {
   ResolvedSidebarView,
   SidebarBadges,
 } from '@/components/layout/types'
+import { useOpenAnomalyCount } from '@/features/reconciliation/use-open-anomaly-count'
 import { useModelPricingIssueBadge } from '@/features/system-settings/models/pricing-issues'
 import { ROLE } from '@/lib/roles'
 import { useAuthStore } from '@/stores/auth-store'
@@ -54,7 +55,12 @@ export function useSidebarView(): ResolvedSidebarView {
   const pathname = useLocation({ select: (l) => l.pathname })
   const userRole = useAuthStore((s) => s.auth.user?.role)
   const modelPricingBadge = useModelPricingIssueBadge()
-  const badges: SidebarBadges = { modelPricing: modelPricingBadge }
+  const openAnomalies = useOpenAnomalyCount()
+  const badges: SidebarBadges = {
+    modelPricing: modelPricingBadge,
+    // 0 条时不显示，避免长期挂着一个「0」变成噪声
+    billingAnomaly: openAnomalies > 0 ? String(openAnomalies) : undefined,
+  }
   const rootSidebarData = useSidebarData(badges)
   const configFilteredRoot = useSidebarConfig(rootSidebarData.navGroups)
 

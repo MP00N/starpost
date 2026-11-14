@@ -25,6 +25,7 @@ import {
   getFreshAuthHeaders,
   refreshAuthentication,
 } from '@/lib/auth-session'
+import { beginRequest, endRequest } from '@/lib/request-activity'
 import { handleServerError } from '@/lib/handle-server-error'
 import {
   getServerErrorMessage,
@@ -54,6 +55,25 @@ export const api = axios.create({
     'Cache-Control': 'no-cache, no-store',
   },
 })
+
+// In-flight accounting for the 驿路线 indicator. This pair deliberately does
+// nothing but count: it must not touch the config, the response, or the error,
+// because the existing interceptors below already own refresh, retry and error
+// shaping. Counting last keeps the order of side effects unchanged.
+api.interceptors.request.use((config) => {
+  beginRequest()
+  return config
+})
+api.interceptors.response.use(
+  (response) => {
+    endRequest()
+    return response
+  },
+  (error) => {
+    endRequest()
+    return Promise.reject(error)
+  }
+)
 
 const inFlightGet = new Map<string, Promise<unknown>>()
 const originalGet = api.get.bind(api)

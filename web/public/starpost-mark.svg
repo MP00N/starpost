@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="星驿 StarPost">
+  <!--
+    星驿 mark — a gate with a lamp above it, knocked out of a vermilion seal.
+
+    Constraints this had to satisfy:
+      - the header renders the logo as an <img> inside `rounded-full`, so all
+        content stays inside the inscribed circle;
+      - it must read on a light header and a dark one, so the mark is a filled
+        seal with a knocked-out glyph rather than a line drawing;
+      - it must read at 16px in a browser tab, so it is four strokes and a dot.
+  -->
+  <circle cx="16" cy="16" r="15.2" fill="#B23A2E"/>
+  <circle cx="16" cy="16" r="13.1" fill="none" stroke="#FFF8F2" stroke-width="1.1" opacity="0.55"/>
+  <g stroke="#FFF8F2" stroke-width="2.3" stroke-linecap="round" fill="none">
+    <path d="M8.4 11.6h15.2"/>
+    <path d="M10.9 11.6v11.1"/>
+    <path d="M21.1 11.6v11.1"/>
+  </g>
+  <circle cx="16" cy="6.5" r="2.25" fill="#FFF8F2"/>
+</svg>

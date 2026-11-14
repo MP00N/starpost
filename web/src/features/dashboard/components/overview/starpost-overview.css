@@ -1,0 +1,514 @@
+/**
+ * 概览 · 驿报 — layout for StarPostOverview.
+ *
+ * Scoped to [data-theme-preset='starpost'] so another preset falls back to the
+ * stock overview untouched.
+ */
+
+.sp-board {
+  padding: 4px 2px 28px;
+  isolation: isolate;
+}
+
+/* 界格 — the same 96px column rhythm as the landing page. Sits behind the
+ * content (z-index handled by the parent's isolation), fades at the bottom so it
+ * does not read as a table. */
+.sp-board-grid {
+  position: absolute;
+  inset: 0 0 -12px;
+  z-index: -1;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--sp-kaige-global) 0 1px,
+    transparent 1px 96px
+  );
+  mask-image: linear-gradient(to bottom, #000 0%, #000 62%, transparent 100%);
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000 62%,
+    transparent 100%
+  );
+}
+
+/* ── 驿头 ─────────────────────────────────────────────────────────────── */
+.sp-board-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.sp-board-seal {
+  flex: none;
+  width: 54px;
+  height: 54px;
+  /* 印章略微倾斜并压在上方，像盖上去的，不是摆上去的 */
+  transform: rotate(-2.4deg);
+}
+
+.sp-board-seal svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.sp-board-heading {
+  min-width: 0;
+  flex: 1;
+}
+
+.sp-board-eyebrow {
+  font-size: 10.5px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+  margin: 0 0 6px;
+}
+
+.sp-board-title {
+  /* 首页同一套衬线。字号在这里比内容大两级，页头才有"头"的样子 */
+  font-family: var(--font-serif, ui-serif, Georgia, serif);
+  font-size: clamp(28px, 3.2vw, 40px);
+  line-height: 1.08;
+  letter-spacing: -0.022em;
+  font-weight: 600;
+  margin: 0;
+}
+
+.sp-board-subtitle {
+  margin: 8px 0 0;
+  max-width: 46ch;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--muted-foreground);
+}
+
+.sp-board-aside {
+  flex: none;
+  padding-top: 4px;
+}
+
+.sp-vertical {
+  display: inline-block;
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  line-height: 1;
+  color: var(--muted-foreground);
+  opacity: 0.8;
+}
+
+/* ── 云头线 ───────────────────────────────────────────────────────────── */
+.sp-board-rule {
+  display: block;
+  width: 100%;
+  height: 12px;
+  margin: 20px 0 0;
+  color: var(--sp-rule-soft);
+}
+
+.sp-board-rule--short {
+  margin-top: 18px;
+  max-width: 260px;
+}
+
+/* ── 数（账本式）──────────────────────────────────────────────────────── */
+.sp-board-figures {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  margin-top: 18px;
+}
+
+.sp-board-figure {
+  flex: 1 1 0;
+  min-width: 128px;
+  padding: 0 20px;
+  border-left: 1px solid var(--sp-rule-soft);
+}
+
+.sp-board-figure:first-child {
+  padding-left: 0;
+  border-left: 0;
+}
+
+.sp-board-figure-label {
+  margin: 0;
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.sp-board-figure-value {
+  margin: 6px 0 0;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.sp-board-figure-number {
+  font-family: var(--font-serif, ui-serif, Georgia, serif);
+  font-size: 26px;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+.sp-board-figure-unit {
+  font-size: 11px;
+  color: var(--muted-foreground);
+  letter-spacing: 0.06em;
+}
+
+/* ── 驿路状态 ─────────────────────────────────────────────────────────── */
+.sp-board-routes {
+  margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 28px;
+}
+
+.sp-board-route {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.sp-board-route-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  flex: none;
+  background: var(--muted-foreground);
+}
+
+.sp-board-route-dot[data-state='online'] {
+  background: var(--sp-celadon);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--sp-celadon) 20%, transparent);
+}
+
+.sp-board-route-dot[data-state='waiting'] {
+  background: var(--sp-amber);
+}
+
+.sp-board-route-dot[data-state='pending'] {
+  background: var(--muted-foreground);
+  opacity: 0.5;
+}
+
+.sp-board-route-label {
+  color: var(--foreground);
+}
+
+.sp-board-route-detail {
+  color: var(--muted-foreground);
+}
+
+/* 手机上竖排标签没有位置，收起来 */
+@media (max-width: 640px) {
+  .sp-board-aside {
+    display: none;
+  }
+
+  .sp-board-figure {
+    flex-basis: 45%;
+    padding: 10px 0 0;
+    border-left: 0;
+    border-top: 1px solid var(--sp-rule-soft);
+  }
+
+  .sp-board-figure:nth-child(-n + 2) {
+    border-top: 0;
+    padding-top: 0;
+  }
+}
+
+/* ── 引导块：从「SaaS 卡片」改成「一页驿规」 ─────────────────────────────── */
+[data-theme-preset='starpost'] .sp-guide-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10.5px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+/* 小方印里放一个「启」字，作为这一段的开篇记号 */
+[data-theme-preset='starpost'] .sp-guide-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  font-size: 9px;
+  line-height: 1;
+  letter-spacing: 0;
+  color: var(--sp-seal-ink);
+  border: 1px solid
+    color-mix(in oklch, var(--sp-seal-ink) 50%, transparent);
+}
+
+[data-theme-preset='starpost'] .sp-guide-title {
+  font-family: var(--font-serif, ui-serif, Georgia, serif);
+  font-size: clamp(20px, 2.1vw, 27px);
+  line-height: 1.16;
+  letter-spacing: -0.018em;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* 步骤：不再是一张内嵌卡，而是一列带横线的账页 */
+[data-theme-preset='starpost'] .sp-guide-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--sp-rule-soft);
+}
+
+[data-theme-preset='starpost'] .sp-guide-steps > li {
+  border-bottom: 1px solid var(--sp-rule-soft);
+  background: transparent;
+}
+
+[data-theme-preset='starpost'] .sp-guide-steps > li > button,
+[data-theme-preset='starpost'] .sp-guide-steps > li > a,
+[data-theme-preset='starpost'] .sp-guide-steps > li > div {
+  border-radius: 0;
+  background: transparent;
+}
+
+/* 页头已有的标题不再重复；只在驿站预设下隐藏 */
+[data-theme-preset='starpost'] .sp-hide-title {
+  display: none;
+}
+
+/* 右侧「推荐操作」等标签页：同样换成纸块 */
+[data-theme-preset='starpost'] [data-slot='card'],
+[data-theme-preset='starpost'] [data-slot='card-content'],
+[data-theme-preset='starpost'] [data-slot='card-header'] {
+  border-radius: 0;
+}
+
+[data-theme-preset='starpost'] [data-slot='card'] {
+  background: color-mix(in oklch, var(--card) 60%, var(--background));
+}
+
+/* 卡片内的按钮列表：用横线分隔，不堆圆角小块 */
+[data-theme-preset='starpost'] [data-slot='card'] a,
+[data-theme-preset='starpost'] [data-slot='card'] button {
+  border-radius: 2px;
+}
+
+/* ── 驿程：一条竖线，节点挂在线上 ───────────────────────────────────────── */
+[data-theme-preset='starpost'] .sp-journey {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0 0 0 22px;
+  position: relative;
+}
+
+/* 线本身：从第一个节点到最后一个节点 */
+[data-theme-preset='starpost'] .sp-journey::before {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 10px;
+  bottom: 10px;
+  width: 1px;
+  background: var(--sp-rule-soft);
+}
+
+[data-theme-preset='starpost'] .sp-journey-item {
+  position: relative;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--sp-kaige-global);
+}
+
+[data-theme-preset='starpost'] .sp-journey-item:last-child {
+  border-bottom: 0;
+}
+
+/* 节点：空心=未开始，环=当前，实心朱砂=已过 */
+[data-theme-preset='starpost'] .sp-journey-node {
+  position: absolute;
+  left: -22px;
+  top: 13px;
+  width: 11px;
+  height: 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 1px solid var(--sp-rule-strong, var(--sp-rule-soft));
+  background: var(--background);
+  color: var(--background);
+}
+
+[data-theme-preset='starpost']
+  .sp-journey-item[data-state='current']
+  .sp-journey-node {
+  border-color: var(--sp-seal-ink);
+  box-shadow: 0 0 0 3px
+    color-mix(in oklch, var(--sp-seal-ink) 14%, transparent);
+}
+
+[data-theme-preset='starpost']
+  .sp-journey-item[data-state='passed']
+  .sp-journey-node {
+  background: var(--sp-seal-ink);
+  border-color: var(--sp-seal-ink);
+  color: var(--background);
+}
+
+[data-theme-preset='starpost'] .sp-journey-body {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: inherit;
+}
+
+[data-theme-preset='starpost'] .sp-journey-body:hover .sp-journey-title {
+  color: var(--sp-seal-ink);
+}
+
+[data-theme-preset='starpost'] .sp-journey-index {
+  font-family: var(--font-serif, ui-serif, Georgia, serif);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--muted-foreground);
+  opacity: 0.7;
+  min-width: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+[data-theme-preset='starpost'] .sp-journey-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+[data-theme-preset='starpost'] .sp-journey-title {
+  font-size: 13.5px;
+  font-weight: 500;
+  transition: color 120ms ease;
+}
+
+[data-theme-preset='starpost'] .sp-journey-desc {
+  font-size: 11.5px;
+  color: var(--muted-foreground);
+  margin-top: 2px;
+}
+
+[data-theme-preset='starpost'] .sp-journey-icon {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  color: var(--muted-foreground);
+  opacity: 0.5;
+}
+
+/* ── 驿路指引：像目录，不像按钮 ────────────────────────────────────────── */
+[data-theme-preset='starpost'] .sp-guide-index {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  border-top: 1px solid var(--sp-rule-soft);
+}
+
+[data-theme-preset='starpost'] .sp-guide-index > li {
+  border-bottom: 1px solid var(--sp-kaige-global);
+}
+
+[data-theme-preset='starpost'] .sp-guide-entry {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 2px;
+  text-decoration: none;
+  color: inherit;
+}
+
+[data-theme-preset='starpost'] .sp-guide-entry:hover .sp-guide-entry-title {
+  color: var(--sp-seal-ink);
+}
+
+[data-theme-preset='starpost'] .sp-guide-entry-icon {
+  width: 13px;
+  height: 13px;
+  flex: none;
+  color: var(--muted-foreground);
+}
+
+[data-theme-preset='starpost'] .sp-guide-entry-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+[data-theme-preset='starpost'] .sp-guide-entry-title {
+  font-size: 13px;
+  font-weight: 500;
+  transition: color 120ms ease;
+}
+
+[data-theme-preset='starpost'] .sp-guide-entry-desc {
+  font-size: 11px;
+  color: var(--muted-foreground);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+[data-theme-preset='starpost'] .sp-guide-entry-arrow {
+  width: 13px;
+  height: 13px;
+  flex: none;
+  color: var(--muted-foreground);
+  opacity: 0.45;
+}
+
+/* ── 段落头 ───────────────────────────────────────────────────────────── */
+[data-theme-preset='starpost'] .sp-section-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+[data-theme-preset='starpost'] .sp-section-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex: none;
+  font-size: 9px;
+  line-height: 1;
+  color: var(--sp-seal-ink);
+  border: 1px solid
+    color-mix(in oklch, var(--sp-seal-ink) 50%, transparent);
+}
+
+[data-theme-preset='starpost'] .sp-section-eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+[data-theme-preset='starpost'] .sp-section-title {
+  width: 100%;
+  margin: 2px 0 0;
+  font-family: var(--font-serif, ui-serif, Georgia, serif);
+  font-size: clamp(17px, 1.7vw, 21px);
+  line-height: 1.25;
+  letter-spacing: -0.014em;
+  font-weight: 600;
+}

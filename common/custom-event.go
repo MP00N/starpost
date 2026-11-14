@@ -62,12 +62,16 @@ func encode(writer io.Writer, event CustomEvent) error {
 }
 
 func writeData(w stringWriter, data any) error {
-	if _, err := dataReplacer.WriteString(w, fmt.Sprint(data)); err != nil {
+	// Render once and reuse the string form. Asserting data.(string) here would
+	// panic for any non-string payload even though fmt.Sprint already accepts it.
+	rendered := fmt.Sprint(data)
+	if _, err := dataReplacer.WriteString(w, rendered); err != nil {
 		return err
 	}
-	if strings.HasPrefix(data.(string), "data") {
-		_, err := w.writeString("\n\n")
-		return err
+	if strings.HasPrefix(rendered, "data") {
+		if _, err := w.writeString("\n\n"); err != nil {
+			return err
+		}
 	}
 	return nil
 }

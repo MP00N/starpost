@@ -36,27 +36,20 @@ interface PageTransitionProps {
   className?: string
 }
 
+/**
+ * 过驿门 — a panel passes through the gate.
+ *
+ * A lateral slide plus a fade, 340ms on desktop and 272ms on small screens, run
+ * by CSS so the timing lives in one token file. Deliberately no scale and no
+ * 3D: this fires on every route change, and a page that zooms on every
+ * navigation is exhausting to use. prefers-reduced-motion drops the slide and
+ * keeps a plain cross-fade.
+ */
 export function PageTransition(props: PageTransitionProps) {
-  const shouldReduce = useReducedMotion()
-
-  if (shouldReduce) {
-    return <div className={props.className}>{props.children}</div>
-  }
-
-  return (
-    <motion.div
-      initial={MOTION_VARIANTS.pageEnter.initial}
-      animate={MOTION_VARIANTS.pageEnter.animate}
-      transition={MOTION_TRANSITION.default}
-      className={props.className}
-    >
-      {props.children}
-    </motion.div>
-  )
+  return <div className={`sp-gate ${props.className ?? ''}`}>{props.children}</div>
 }
 
 export function AnimatedOutlet() {
-  const shouldReduce = useReducedMotion()
   // Key the page transition by the matched route id, not the resolved pathname.
   // Navigating between params of the same route (e.g. dashboard tabs served by
   // /dashboard/$section) then re-renders in place instead of remounting the
@@ -65,24 +58,13 @@ export function AnimatedOutlet() {
     select: (s) => s.matches.at(-1)?.routeId ?? s.location.pathname,
   })
 
-  if (shouldReduce) {
-    return (
-      <div className='flex min-h-0 flex-1 flex-col'>
-        <Outlet />
-      </div>
-    )
-  }
-
   return (
-    <motion.div
+    <div
       key={routeKey}
-      initial={MOTION_VARIANTS.pageEnter.initial}
-      animate={MOTION_VARIANTS.pageEnter.animate}
-      transition={MOTION_TRANSITION.fast}
-      className='flex min-h-0 flex-1 flex-col'
+      className='sp-gate flex min-h-0 flex-1 flex-col'
     >
       <Outlet />
-    </motion.div>
+    </div>
   )
 }
 
@@ -132,7 +114,7 @@ export function TableStaggerContainer(props: StaggerContainerProps) {
   const shouldReduce = useReducedMotion()
 
   if (shouldReduce) {
-    return <>{props.children}</>
+    return <tbody className={props.className}>{props.children}</tbody>
   }
 
   return (

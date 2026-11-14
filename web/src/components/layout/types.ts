@@ -115,6 +115,8 @@ export type SidebarViewParent = {
 export type SidebarBadges = {
   /** Task models whose price needs attention, on the entries leading to model pricing */
   modelPricing?: string
+  /** 待处理计费异常条数，挂在「对账」入口上 */
+  billingAnomaly?: string
 }
 
 /**

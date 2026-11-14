@@ -1,0 +1,276 @@
+/**
+ * 共用件 — dialogs, popovers, empty states, filter chips, scrollbars.
+ *
+ * The third layer after the shell and the page frame. These components appear on
+ * every page, so shaping them here changes twenty-odd screens at once.
+ *
+ * The language, stated once so the rules below are not arbitrary:
+ *   纸   纸面有边、无影；浮层是"压在纸上的另一张纸"，不是悬浮的云
+ *   界格 细分隔用发丝线，不用阴影
+ *   朱   只有"确定/当前/进行中"这类语义才用朱砂，其余一律墨色
+ *   方   圆角收在 1-2px；圆只留给真正的圆（裁切、状态点）
+ */
+
+/* ── 对话框：一张压在纸上的纸 ─────────────────────────────────────────────
+ * 原生是 16px 圆角 + 大投影，读起来像浮在空中的白卡。这里改成一张实纸：
+ * 方角、双线边（外粗内细，像裱好的册页）、极淡的投影只用来托住纸边。 */
+[data-theme-preset='starpost'] [data-slot='dialog-content'],
+[data-theme-preset='starpost'] [data-slot='alert-dialog-content'] {
+  border-radius: 0;
+  background: var(--background);
+  /* 双线边：外 1px 墨线，内 1px 更淡，形成"裱边" */
+  border: 1px solid var(--sp-rule-strong, var(--sp-rule));
+  box-shadow:
+    inset 0 0 0 4px var(--background),
+    inset 0 0 0 5px var(--sp-rule-soft),
+    0 24px 60px -40px color-mix(in oklch, var(--foreground) 70%, transparent);
+}
+
+/* 标题：衬线 + 左侧朱砂短线，像册页的题签 */
+[data-theme-preset='starpost'] [data-slot='dialog-title'],
+[data-theme-preset='starpost'] [data-slot='alert-dialog-title'] {
+  font-family: var(--font-serif, ui-serif, Georgia, serif);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  font-size: 17px;
+  padding-left: 10px;
+  border-left: 2px solid var(--sp-seal-ink);
+  line-height: 1.3;
+}
+
+[data-theme-preset='starpost'] [data-slot='dialog-description'],
+[data-theme-preset='starpost'] [data-slot='alert-dialog-description'] {
+  font-size: 12.5px;
+  letter-spacing: 0.01em;
+  color: var(--muted-foreground);
+}
+
+/* 遮罩：墨色渐隐，不要纯黑 */
+[data-theme-preset='starpost'] [data-slot='dialog-overlay'],
+[data-theme-preset='starpost'] [data-slot='alert-dialog-overlay'] {
+  background: color-mix(in oklch, var(--foreground) 32%, transparent);
+  backdrop-filter: blur(1.5px);
+}
+
+/* ── 浮层：下拉、选择器、命令面板 ─────────────────────────────────────────
+ * 同样是一张纸，但更小更薄：单线边，方角，无投影。 */
+[data-theme-preset='starpost'] [data-slot='dropdown-menu-content'],
+[data-theme-preset='starpost'] [data-slot='select-content'],
+[data-theme-preset='starpost'] [data-slot='popover-content'],
+[data-theme-preset='starpost'] [data-slot='command'],
+[data-theme-preset='starpost'] [data-slot='context-menu-content'],
+[data-theme-preset='starpost'] [data-slot='hover-card-content'] {
+  border-radius: 0;
+  border: 1px solid var(--sp-rule-strong, var(--sp-rule));
+  background: var(--popover);
+  box-shadow: 0 18px 44px -36px color-mix(in oklch, var(--foreground) 70%, transparent);
+}
+
+/* 菜单项：方角、留白更紧、选中用朱砂左线 */
+[data-theme-preset='starpost'] [data-slot='dropdown-menu-item'],
+[data-theme-preset='starpost'] [data-slot='select-item'],
+[data-theme-preset='starpost'] [data-slot='command-item'],
+[data-theme-preset='starpost'] [data-slot='context-menu-item'] {
+  border-radius: 0;
+  font-size: 12.5px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+[data-theme-preset='starpost'] [data-slot='dropdown-menu-item']:focus,
+[data-theme-preset='starpost'] [data-slot='dropdown-menu-item'][data-highlighted],
+[data-theme-preset='starpost'] [data-slot='command-item'][data-selected='true'],
+[data-theme-preset='starpost'] [data-slot='select-item']:focus {
+  background: color-mix(in oklch, var(--sp-seal-ink) 7%, transparent);
+  box-shadow: inset 2px 0 0 var(--sp-seal-ink);
+  outline: none;
+}
+
+[data-theme-preset='starpost'] [data-slot='dropdown-menu-label'] {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+[data-theme-preset='starpost'] [data-slot='dropdown-menu-separator'],
+[data-theme-preset='starpost'] [data-slot='command-separator'] {
+  height: 1px;
+  background: var(--sp-rule-soft);
+}
+
+/* ── 空状态：不是"什么都没有"，是"这里留白" ───────────────────────────────
+ * 原生是一个灰图标 + 两行字。这里给一个圆相（空心的圆），配一句衬线小字，
+ * 像册页上留出的空白，而不是报错。 */
+[data-theme-preset='starpost'] [data-slot='empty'],
+[data-theme-preset='starpost'] .sp-empty {
+  border: 1px dashed var(--sp-rule-soft);
+  border-radius: 0;
+  background:
+    repeating-linear-gradient(
+      to right,
+      var(--sp-kaige-global) 0 1px,
+      transparent 1px 96px
+    ),
+    transparent;
+  padding: 42px 20px;
+}
+
+[data-theme-preset='starpost'] [data-slot='empty'] svg {
+  color: var(--muted-foreground);
+  opacity: 0.45;
+}
+
+[data-theme-preset='starpost'] [data-slot='empty-title'] {
+  font-family: var(--font-serif, ui-serif, Georgia, serif);
+  font-size: 15px;
+  letter-spacing: 0.02em;
+}
+
+/* ── 筛选器 / 视图切换：一排小签，不是一排按钮 ─────────────────────────────
+ * 圆形图标按钮、圆角描边下拉，统一压成方签；当前项用朱砂描边。 */
+[data-theme-preset='starpost'] [data-slot='button'][data-size='icon'],
+[data-theme-preset='starpost'] [data-slot='button'][data-size='icon-sm'] {
+  border-radius: 1px;
+}
+
+[data-theme-preset='starpost'] [data-slot='button'][data-variant='outline'] {
+  border-radius: 1px;
+  background: transparent;
+  border-color: var(--sp-rule-strong, var(--sp-rule));
+}
+
+[data-theme-preset='starpost'] [data-slot='button'][data-variant='outline']:hover {
+  background: color-mix(in oklch, var(--sp-seal-ink) 5%, transparent);
+  border-color: color-mix(in oklch, var(--sp-seal-ink) 45%, transparent);
+}
+
+/* 分组按钮（视图切换）当前态 */
+[data-theme-preset='starpost'] [data-slot='button'][data-state='on'],
+[data-theme-preset='starpost'] [data-slot='toggle-group-item'][data-state='on'],
+[data-theme-preset='starpost'] [aria-pressed='true'] {
+  background: color-mix(in oklch, var(--sp-seal-ink) 9%, transparent);
+  border-color: color-mix(in oklch, var(--sp-seal-ink) 55%, transparent);
+  color: var(--foreground);
+}
+
+/* ── 工具提示：墨底白字，方角 ───────────────────────────────────────────── */
+[data-theme-preset='starpost'] [data-slot='tooltip-content'] {
+  border-radius: 1px;
+  background: color-mix(in oklch, var(--foreground) 92%, var(--background));
+  color: var(--background);
+  font-size: 11.5px;
+  letter-spacing: 0.02em;
+  padding: 5px 8px;
+}
+
+/* ── 滚动条：一根细墨线，不要系统灰条 ───────────────────────────────────── */
+[data-theme-preset='starpost'] ::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+
+[data-theme-preset='starpost'] ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+[data-theme-preset='starpost'] ::-webkit-scrollbar-thumb {
+  background: color-mix(in oklch, var(--foreground) 18%, transparent);
+  border-radius: 0;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+[data-theme-preset='starpost'] ::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in oklch, var(--sp-seal-ink) 45%, transparent);
+  background-clip: content-box;
+  border: 3px solid transparent;
+}
+
+/* ── 头像 / 图标徽标：唯一保留圆形的地方 ─────────────────────────────────── */
+[data-theme-preset='starpost'] [data-slot='avatar'] {
+  border-radius: 1px;
+}
+
+/* ── 键帽：方，描边，等宽 ───────────────────────────────────────────────── */
+[data-theme-preset='starpost'] [data-slot='kbd'] {
+  border-radius: 1px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 10px;
+  border: 1px solid var(--sp-rule-soft);
+  background: transparent;
+}
+
+/* ── 折叠 / 手风琴：发丝线，不要圆角块 ─────────────────────────────────── */
+[data-theme-preset='starpost'] [data-slot='accordion-item'] {
+  border-bottom: 1px solid var(--sp-kaige-global);
+}
+
+[data-theme-preset='starpost'] [data-slot='accordion-trigger'] {
+  border-radius: 0;
+  font-size: 13px;
+}
+
+/* ── 侧栏折叠按钮、面包屑 ───────────────────────────────────────────────── */
+[data-theme-preset='starpost'] [data-slot='breadcrumb'] {
+  font-size: 11.5px;
+  letter-spacing: 0.02em;
+}
+
+/* ── 进度条 ─────────────────────────────────────────────────────────────── */
+[data-theme-preset='starpost'] [data-slot='progress'] {
+  border-radius: 0;
+  background: var(--sp-kaige-global);
+}
+
+/* ── 折线图容器里的网格线要淡，别和数据抢 ───────────────────────────────── */
+[data-theme-preset='starpost'] .recharts-cartesian-grid line {
+  stroke: var(--sp-rule-soft);
+  opacity: 0.7;
+}
+
+/* ── 侧板（Sheet）：很多"新建/配置"其实是抽屉，不是对话框 ─────────────────
+ * 实测：点「新建渠道」打开的是 sheet-content（1280px 满宽侧板），
+ * 不是 dialog-content。只写 dialog 规则会全部落空。 */
+[data-theme-preset='starpost'] [data-slot='sheet-content'] {
+  border-radius: 0;
+  background: var(--background);
+  border-left: 1px solid var(--sp-rule-strong, var(--sp-rule));
+  box-shadow: -24px 0 60px -46px color-mix(in oklch, var(--foreground) 70%, transparent);
+}
+
+[data-theme-preset='starpost'] [data-slot='sheet-header'] {
+  border-bottom: 1px solid var(--sp-rule-soft);
+  padding-bottom: 10px;
+}
+
+[data-theme-preset='starpost'] [data-slot='sheet-title'] {
+  font-family: var(--font-serif, ui-serif, Georgia, serif);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  font-size: 17px;
+  padding-left: 10px;
+  border-left: 2px solid var(--sp-seal-ink);
+  line-height: 1.3;
+}
+
+[data-theme-preset='starpost'] [data-slot='sheet-description'] {
+  font-size: 12.5px;
+  letter-spacing: 0.01em;
+  color: var(--muted-foreground);
+}
+
+[data-theme-preset='starpost'] [data-slot='sheet-footer'] {
+  border-top: 1px solid var(--sp-rule-soft);
+}
+
+[data-theme-preset='starpost'] [data-slot='sheet-overlay'] {
+  background: color-mix(in oklch, var(--foreground) 32%, transparent);
+  backdrop-filter: blur(1.5px);
+}
+
+/* 侧板里的提供商选项：从"卡片"变成"签条"——方角、细边、悬停朱砂 */
+[data-theme-preset='starpost'] [data-slot='sheet-content'] [role='button'],
+[data-theme-preset='starpost'] [data-slot='sheet-content'] button[class*='rounded'] {
+  border-radius: 1px;
+}

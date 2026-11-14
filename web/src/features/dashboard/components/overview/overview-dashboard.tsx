@@ -1,3 +1,6 @@
+import { BoardSectionHead, GuideIndex, JourneyList } from './starpost-blocks'
+import { StarPostOverview } from './starpost-overview'
+import './starpost-overview.css'
 /*
 Copyright (C) 2023-2026 QuantumNous
 
@@ -327,7 +330,7 @@ function RequestPreview(props: {
       initial={shouldReduceMotion ? false : { opacity: 0, y: 10, scale: 0.98 }}
       animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0, scale: 1 }}
       transition={MOTION_TRANSITION.slow}
-      className='bg-background/75 relative overflow-hidden rounded-2xl border p-3 shadow-sm backdrop-blur'
+      className='bg-background/75 relative overflow-hidden rounded-[2px] border backdrop-blur-none'
     >
       {!shouldReduceMotion && (
         <motion.div
@@ -458,6 +461,15 @@ function CompactQuickAction(props: { action: QuickAction }) {
       <span>{props.action.title}</span>
     </Button>
   )
+}
+
+/**
+ * 额度 → 美元。概览页只放四个数，长小数会把账本撑破，所以统一两位小数。
+ * QuotaPerUnit 从状态里取，避免和后端配置不一致。
+ */
+function formatQuotaCompact(quota: number): string {
+  const perUnit = 500000
+  return (quota / perUnit).toFixed(2)
 }
 
 export function OverviewDashboard() {
@@ -629,7 +641,10 @@ export function OverviewDashboard() {
 
   return (
     <SectionPageLayout>
-      <SectionPageLayout.Title>{t('Overview')}</SectionPageLayout.Title>
+      {/* 驿头已经有 40px 的衬线标题，这里不再重复一行小标题 */}
+      <SectionPageLayout.Title>
+        <span className='sp-hide-title'>{t('Overview')}</span>
+      </SectionPageLayout.Title>
       <SectionPageLayout.Actions>
         {setupStatusReady && setupComplete && (
           <Button
@@ -647,26 +662,61 @@ export function OverviewDashboard() {
       </SectionPageLayout.Actions>
       <SectionPageLayout.Content>
         <div className='flex flex-col gap-4'>
+          <StarPostOverview
+            figures={[
+              {
+                label: t('Quota remaining'),
+                value: formatQuotaCompact(remainQuota),
+                unit: 'USD',
+              },
+              {
+                label: t('Consumed'),
+                value: formatQuotaCompact(usedQuota),
+                unit: 'USD',
+              },
+              {
+                label: t('Requests'),
+                value: requestCount.toLocaleString(),
+              },
+              {
+                label: t('Model selected'),
+                value: modelsQuery.data?.[0] ?? t('None'),
+              },
+            ]}
+            routes={[
+              {
+                label: t('Route active'),
+                detail:
+                  apiInfoItems.length > 0 ? t('Online') : t('Current domain'),
+                state: apiInfoItems.length > 0 ? 'online' : 'pending',
+              },
+              {
+                label: t('Auth configured'),
+                detail: preferredKey ? t('Secured') : t('Needs API key'),
+                state: preferredKey ? 'online' : 'waiting',
+              },
+              {
+                label: t('Setup guide'),
+                detail: `${completedStepCount}/${startSteps.length}`,
+                state: setupComplete ? 'online' : 'pending',
+              },
+            ]}
+          />
           <div id={setupGuideId} hidden={!setupGuideExpanded}>
             {setupGuideExpanded && (
               <CardStaggerContainer className='grid items-stretch gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]'>
-                <CardStaggerItem className='bg-card h-full overflow-hidden rounded-2xl border shadow-xs'>
+                <CardStaggerItem className='bg-card h-full overflow-hidden rounded-[2px] border'>
                   <div className='relative h-full overflow-hidden p-4 sm:p-5'>
                     <SetupGuideBackdrop />
                     <div className='relative grid gap-5 lg:grid-cols-[minmax(0,1fr)_21rem]'>
                       <div className='flex min-w-0 flex-col gap-5'>
                         <div className='flex flex-wrap items-start justify-between gap-3'>
                           <div className='flex max-w-2xl flex-col gap-1'>
-                            <div className='text-muted-foreground flex items-center gap-2 text-xs font-medium tracking-wider uppercase'>
-                              <ListChecks
-                                className='size-3.5'
-                                aria-hidden='true'
-                              />
-                              {t('Get started')}
-                            </div>
-                            <h3 className='text-xl font-semibold tracking-tight sm:text-2xl'>
-                              {t('Build on your API gateway in minutes')}
-                            </h3>
+                            <BoardSectionHead
+                              mark='启'
+                              eyebrow={t('Get started')}
+                              title={t('Build on your API gateway in minutes')}
+                            />
                             <p className='text-muted-foreground max-w-xl text-sm leading-relaxed'>
                               {t(
                                 'A focused home for keys, balance, routing, and service health.'
@@ -691,16 +741,7 @@ export function OverviewDashboard() {
                           </div>
                         </div>
 
-                        <ol className='bg-background/45 rounded-2xl border p-2 backdrop-blur'>
-                          {startSteps.map((step, index) => (
-                            <StartStepItem
-                              key={step.title}
-                              step={step}
-                              index={index}
-                              isLast={index === startSteps.length - 1}
-                            />
-                          ))}
-                        </ol>
+                        <JourneyList steps={startSteps} />
                       </div>
 
                       <RequestPreview
@@ -711,21 +752,14 @@ export function OverviewDashboard() {
                   </div>
                 </CardStaggerItem>
 
-                <CardStaggerItem className='bg-card h-full rounded-2xl border p-4 shadow-xs sm:p-5'>
+                <CardStaggerItem className='bg-card h-full rounded-[2px] border p-4 sm:p-5'>
                   <div className='flex h-full flex-col gap-4'>
-                    <div className='flex flex-col gap-1'>
-                      <div className='text-muted-foreground text-xs font-medium tracking-wider uppercase'>
-                        {t('Recommended actions')}
-                      </div>
-                      <h3 className='text-lg font-semibold tracking-tight'>
-                        {t('Keep the platform ready')}
-                      </h3>
-                    </div>
-                    <div className='grid gap-2'>
-                      {visibleQuickActions.map((action) => (
-                        <QuickActionItem key={action.title} action={action} />
-                      ))}
-                    </div>
+                    <BoardSectionHead
+                      mark='路'
+                      eyebrow={t('Recommended actions')}
+                      title={t('Keep the platform ready')}
+                    />
+                    <GuideIndex entries={visibleQuickActions} />
                   </div>
                 </CardStaggerItem>
               </CardStaggerContainer>
@@ -733,7 +767,7 @@ export function OverviewDashboard() {
           </div>
           {!setupGuideExpanded && !setupComplete && (
             <CardStaggerContainer>
-              <CardStaggerItem className='bg-card overflow-hidden rounded-2xl border shadow-xs'>
+              <CardStaggerItem className='bg-card overflow-hidden rounded-[2px] border'>
                 <div className='relative overflow-hidden px-4 py-3 sm:px-5'>
                   <SetupGuideBackdrop compact />
                   <div className='relative flex flex-wrap items-center justify-between gap-3'>

@@ -25,6 +25,15 @@ For commercial licensing, please contact support@quantumnous.com
 
 export const THEME_PRESETS = [
   {
+    // 星驿 StarPost — the default. Nighttime relay station: canopy indigo
+    // primary, celadon secondary, station amber as the single warm accent,
+    // and a hand-authored Material 3 tonal ladder instead of drop shadows.
+    // Swatches preview canopy indigo → station amber, the system's two poles.
+    value: 'starpost',
+    name: '星驿 StarPost',
+    swatches: ['oklch(0.472 0.157 277)', 'oklch(0.762 0.148 72)'],
+  },
+  {
     value: 'default',
     name: 'Default',
     swatches: ['oklch(0.72 0.18 250)', 'oklch(0.7 0.12 280)'],
@@ -112,7 +121,7 @@ export type ThemeCustomization = {
 }
 
 export const DEFAULT_THEME_CUSTOMIZATION: ThemeCustomization = {
-  preset: 'default',
+  preset: 'starpost',
   font: 'default',
   radius: 'default',
   scale: 'default',

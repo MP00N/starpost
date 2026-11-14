@@ -426,10 +426,13 @@ For commercial licensing, please contact support@quantumnous.com
  *   - `anthropic`: warm cream surfaces are a brand choice, NOT a primary-mix
  *     derivation (the Anthropic system deliberately uses warm neutrals for
  *     cards/borders rather than tinting them with the clay accent).
- *   - `simple-large`: keeps intentionally neutral, high-contrast surfaces. */
+ *   - `simple-large`: keeps intentionally neutral, high-contrast surfaces.
+ *   - `starpost`: ships a full hand-authored M3 tonal ladder (surface tinted by
+ *     indigo per elevation), so the primary-mix derivation would double-tint it
+ *     and flatten the ladder. */
 [data-theme-preset]:not([data-theme-preset='default']):not(
   [data-theme-preset='anthropic']
-):not([data-theme-preset='simple-large']) {
+):not([data-theme-preset='simple-large']):not([data-theme-preset='starpost']) {
   --card: color-mix(in oklch, var(--primary) 3%, var(--background));
   --popover: color-mix(in oklch, var(--primary) 5%, var(--background));
   --muted: color-mix(in oklch, var(--primary) 7%, var(--background));
@@ -454,7 +457,9 @@ For commercial licensing, please contact support@quantumnous.com
 .dark
   [data-theme-preset]:not([data-theme-preset='default']):not(
     [data-theme-preset='anthropic']
-  ):not([data-theme-preset='simple-large']) {
+  ):not([data-theme-preset='simple-large']):not(
+    [data-theme-preset='starpost']
+  ) {
   --card: color-mix(in oklch, var(--primary) 8%, var(--background));
   --popover: color-mix(in oklch, var(--primary) 12%, var(--background));
   --muted: color-mix(in oklch, var(--primary) 12%, var(--background));
@@ -678,6 +683,179 @@ For commercial licensing, please contact support@quantumnous.com
 [data-theme-font='serif'] .text-4xl,
 [data-theme-font='serif'] .text-5xl {
   letter-spacing: -0.02em;
+}
+
+/* ── 星驿 StarPost ───────────────────────────────────────────────────────
+ *
+ * A relay station, drawn at night. The whole palette is built from the three
+ * things you would actually see standing at one:
+ *
+ *   canopy indigo  — the sky overhead. Primary. A deep, slightly violet indigo,
+ *                    deliberately NOT the #2563EB "AI blue" every gateway
+ *                    reaches for by default.
+ *   celadon        — the glazed lamp on the post. Secondary / success. Cold and
+ *                    quiet, so the warm amber below reads as warm.
+ *   station amber  — the light itself, warm. Primary attention accent only:
+ *                    the top badge, the current step, one CTA. Never a wash.
+ *
+ * Surfaces follow Material 3's tonal ladder rather than shadows: every step of
+ * elevation is a hue-shifted surface tinted with primary, so adjacent planes
+ * separate without a single drop shadow. `--radius: 1.25rem` is the pill end of
+ * the scale, which gives the buttons their MD3 capsule silhouette for free.
+ */
+[data-theme-preset='starpost'] {
+  --background: oklch(0.986 0.0035 275); /* night-paper, not pure white */
+  --foreground: oklch(0.212 0.021 275);
+
+  /* M3 surface containers: surface → surface-container-low … highest */
+  --card: oklch(0.966 0.0065 275);
+  --card-foreground: oklch(0.212 0.021 275);
+  --popover: oklch(0.978 0.005 275);
+  --popover-foreground: oklch(0.212 0.021 275);
+
+  --primary: oklch(0.472 0.157 277); /* canopy indigo */
+  --primary-foreground: oklch(0.992 0.004 275);
+
+  --secondary: oklch(0.607 0.108 187); /* celadon */
+  --secondary-foreground: oklch(0.995 0.002 187);
+
+  --muted: oklch(0.944 0.0085 275);
+  --muted-foreground: oklch(0.502 0.024 275);
+
+  --accent: oklch(0.936 0.019 275); /* primary-tinted selection */
+  --accent-foreground: oklch(0.245 0.03 275);
+
+  --destructive: oklch(0.568 0.207 27.5);
+  --destructive-foreground: oklch(0.995 0 0);
+
+  --border: oklch(0.903 0.012 275);
+  --input: oklch(0.888 0.014 275);
+  --ring: oklch(0.472 0.157 277);
+
+  /* Charts walk indigo → celadon → amber so a dashboard reads as one hand. */
+  --chart-1: oklch(0.472 0.157 277);
+  --chart-2: oklch(0.607 0.108 187);
+  --chart-3: oklch(0.762 0.148 72); /* station amber */
+  --chart-4: oklch(0.655 0.132 330);
+  --chart-5: oklch(0.402 0.088 275);
+
+  --overview-accent-1: oklch(0.472 0.157 277);
+  --overview-accent-2: oklch(0.607 0.108 187);
+  --overview-accent-3: oklch(0.762 0.148 72);
+
+  --sidebar: oklch(0.972 0.006 275);
+  --sidebar-foreground: oklch(0.212 0.021 275);
+  --sidebar-primary: oklch(0.472 0.157 277);
+  --sidebar-primary-foreground: oklch(0.992 0.004 275);
+  --sidebar-accent: oklch(0.936 0.019 275);
+  --sidebar-accent-foreground: oklch(0.245 0.03 275);
+  --sidebar-border: oklch(0.903 0.012 275);
+  --sidebar-ring: oklch(0.472 0.157 277);
+
+  --success: oklch(0.607 0.108 187);
+  --success-foreground: oklch(0.995 0.002 187);
+  --warning: oklch(0.762 0.148 72);
+  --warning-foreground: oklch(0.235 0.04 72);
+  --info: oklch(0.472 0.157 277);
+  --info-foreground: oklch(0.992 0.004 275);
+  --neutral: oklch(0.502 0.024 275);
+  --neutral-foreground: oklch(0.992 0.004 275);
+
+  --table-header: oklch(0.952 0.008 275);
+  --table-header-hover: oklch(0.936 0.011 275);
+  --table-row: oklch(0.986 0.0035 275);
+  --table-disabled: oklch(0.958 0.005 275);
+  --table-disabled-border: oklch(0.912 0.008 275);
+  --table-disabled-hover: oklch(0.944 0.006 275);
+  --skeleton-base: oklch(0.936 0.008 275);
+  --skeleton-highlight: oklch(0.968 0.005 275);
+
+  /* Brand-semantic tokens. Not part of the shadcn contract — these exist so
+   * the landing page can name "the lamp" without hardcoding an oklch() there. */
+  --sp-amber: oklch(0.762 0.148 72); /* station amber — the warm accent */
+  --sp-amber-ink: oklch(0.235 0.042 72); /* text placed on amber */
+  --sp-celadon: oklch(0.607 0.108 187);
+  --sp-indigo: oklch(0.472 0.157 277);
+
+  /* MD3 capsule end of the radius scale — buttons and chips become pills. */
+  --radius: 1.25rem;
+}
+
+.dark [data-theme-preset='starpost'] {
+  /* Surface ramp: the page is the darkest plane, elevated cards step *up*.
+   * Warm-shifted toward indigo instead of the usual neutral #0B0B0B. */
+  --background: oklch(0.176 0.018 277);
+  --foreground: oklch(0.938 0.008 275);
+
+  --card: oklch(0.213 0.021 277);
+  --card-foreground: oklch(0.938 0.008 275);
+  --popover: oklch(0.232 0.023 277);
+  --popover-foreground: oklch(0.938 0.008 275);
+
+  /* Lifted well above the canvas so indigo still reads as a hue at night,
+   * and kept light enough to carry white text at AA. */
+  --primary: oklch(0.712 0.145 280);
+  --primary-foreground: oklch(0.178 0.032 277);
+
+  --secondary: oklch(0.742 0.104 187);
+  --secondary-foreground: oklch(0.186 0.028 187);
+
+  --muted: oklch(0.252 0.019 277);
+  --muted-foreground: oklch(0.712 0.016 275);
+
+  --accent: oklch(0.288 0.032 277);
+  --accent-foreground: oklch(0.945 0.008 275);
+
+  --destructive: oklch(0.702 0.174 24);
+  --destructive-foreground: oklch(0.178 0.032 277);
+
+  --border: oklch(0.302 0.024 277);
+  --input: oklch(0.328 0.026 277);
+  --ring: oklch(0.712 0.145 280);
+
+  --chart-1: oklch(0.712 0.145 280);
+  --chart-2: oklch(0.742 0.104 187);
+  --chart-3: oklch(0.812 0.135 74);
+  --chart-4: oklch(0.722 0.118 330);
+  --chart-5: oklch(0.585 0.105 275);
+
+  --overview-accent-1: oklch(0.712 0.145 280);
+  --overview-accent-2: oklch(0.742 0.104 187);
+  --overview-accent-3: oklch(0.812 0.135 74);
+
+  --sidebar: oklch(0.198 0.019 277);
+  --sidebar-foreground: oklch(0.938 0.008 275);
+  --sidebar-primary: oklch(0.712 0.145 280);
+  --sidebar-primary-foreground: oklch(0.178 0.032 277);
+  --sidebar-accent: oklch(0.288 0.032 277);
+  --sidebar-accent-foreground: oklch(0.945 0.008 275);
+  --sidebar-border: oklch(0.302 0.024 277);
+  --sidebar-ring: oklch(0.712 0.145 280);
+
+  --success: oklch(0.742 0.104 187);
+  --success-foreground: oklch(0.186 0.028 187);
+  --warning: oklch(0.812 0.135 74);
+  --warning-foreground: oklch(0.205 0.042 74);
+  --info: oklch(0.712 0.145 280);
+  --info-foreground: oklch(0.178 0.032 277);
+  --neutral: oklch(0.712 0.016 275);
+  --neutral-foreground: oklch(0.178 0.032 277);
+
+  --table-header: oklch(0.238 0.021 277);
+  --table-header-hover: oklch(0.268 0.024 277);
+  --table-row: oklch(0.196 0.018 277);
+  --table-disabled: oklch(0.222 0.016 277);
+  --table-disabled-border: oklch(0.288 0.02 277);
+  --table-disabled-hover: oklch(0.242 0.018 277);
+  --skeleton-base: oklch(0.262 0.02 277);
+  --skeleton-highlight: oklch(0.318 0.026 277);
+
+  --sp-amber: oklch(0.812 0.135 74);
+  --sp-amber-ink: oklch(0.205 0.042 74);
+  --sp-celadon: oklch(0.742 0.104 187);
+  --sp-indigo: oklch(0.712 0.145 280);
+
+  --radius: 1.25rem;
 }
 
 /* ── Border radius ────────────────────────────────────────────────────── */

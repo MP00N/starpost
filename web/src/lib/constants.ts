@@ -22,7 +22,10 @@ For commercial licensing, please contact support@quantumnous.com
 
 // System Configuration Defaults
 export const DEFAULT_SYSTEM_NAME = 'New API'
-export const DEFAULT_LOGO = '/logo.png'
+// 星驿 mark: a gate under a lamp, knocked out of a vermilion seal. Ships in
+// /public so it can be used both as the header image and as the favicon
+// without a build step. An operator who sets their own logo overrides this.
+export const DEFAULT_LOGO = '/starpost-mark.svg'
 
 // LocalStorage Keys
 export const STORAGE_KEYS = {

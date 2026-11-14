@@ -20,13 +20,12 @@ import { useCallback, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { PublicLayout } from '@/components/layout'
-import { Footer } from '@/components/layout/components/footer'
 import { RichContent } from '@/components/rich-content'
 import { useTheme } from '@/context/theme-provider'
 import { isLikelyHtml } from '@/lib/content-format'
 import { useAuthStore } from '@/stores/auth-store'
 
-import { CTA, Features, Hero, HowItWorks, Stats } from './components'
+import { StarpostHome } from './components/starpost'
 import { useHomePageContent } from './hooks'
 
 export function Home() {
@@ -120,14 +119,12 @@ export function Home() {
     )
   }
 
+  // 星驿 StarPost replaces the previous Hero/Stats/Features/HowItWorks stack.
+  // Admin-configured custom content (URL / HTML / Markdown) is handled above,
+  // so this branch only runs for the built-in landing page.
   return (
     <PublicLayout showMainContainer={false}>
-      <Hero isAuthenticated={isAuthenticated} />
-      <Stats />
-      <Features />
-      <HowItWorks />
-      <CTA isAuthenticated={isAuthenticated} />
-      <Footer />
+      <StarpostHome isAuthenticated={isAuthenticated} />
     </PublicLayout>
   )
 }

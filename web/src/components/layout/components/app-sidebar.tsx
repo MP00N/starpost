@@ -24,6 +24,8 @@ import { useSidebarView } from '@/hooks/use-sidebar-view'
 import { MOTION_TRANSITION, MOTION_VARIANTS } from '@/lib/motion'
 
 import { NavGroup } from './nav-group'
+import { StarPostSidebarHead } from './starpost-sidebar'
+import './starpost-sidebar.css'
 import { SidebarViewHeader } from './sidebar-view-header'
 
 /**
@@ -50,6 +52,8 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible={collapsible} variant={variant}>
+      {/* 根导航才有驿头；下钻视图保留返回按钮，那是它真正的功能 */}
+      {!view && <StarPostSidebarHead />}
       {view && <SidebarViewHeader view={view} />}
 
       <SidebarContent className='py-2'>
@@ -64,8 +68,8 @@ export function AppSidebar() {
             transition={MOTION_TRANSITION.fast}
             className='flex flex-col'
           >
-            {navGroups.map((props) => (
-              <NavGroup key={props.id || props.title} {...props} />
+            {navGroups.map((props, i) => (
+              <NavGroup key={props.id || props.title} index={i} {...props} />
             ))}
           </motion.div>
         </AnimatePresence>

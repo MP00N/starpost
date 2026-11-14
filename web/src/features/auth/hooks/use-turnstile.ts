@@ -29,10 +29,26 @@ export function useTurnstile() {
   const { status } = useStatus()
   const [turnstileToken, setTurnstileToken] = useState('')
 
-  const isTurnstileEnabled = !!(
-    status?.turnstile_check && status?.turnstile_site_key
-  )
-  const turnstileSiteKey = status?.turnstile_site_key || ''
+  // The operator picks one provider in settings; the key that matters is the
+  // one belonging to that provider. Turnstile keeps its historical
+  // `turnstile_check` flag so an install that never touched the new setting
+  // behaves exactly as before.
+  const provider = status?.captcha_type ?? 'turnstile'
+
+  let turnstileSiteKey = ''
+  let isTurnstileEnabled = false
+  if (provider === 'hcaptcha') {
+    turnstileSiteKey = status?.hcaptcha_site_key ?? ''
+    isTurnstileEnabled = turnstileSiteKey.length > 0
+  } else if (provider === 'geetest') {
+    turnstileSiteKey = status?.geetest_captcha_id ?? ''
+    isTurnstileEnabled = turnstileSiteKey.length > 0
+  } else if (provider === 'none') {
+    isTurnstileEnabled = false
+  } else {
+    turnstileSiteKey = status?.turnstile_site_key ?? ''
+    isTurnstileEnabled = !!status?.turnstile_check && turnstileSiteKey.length > 0
+  }
 
   /**
    * Validate if turnstile is ready when required

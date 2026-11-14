@@ -93,6 +93,9 @@ export interface SystemStatus {
   data?: {
     version?: string
     system_name?: string
+    captcha_type?: 'none' | 'turnstile' | 'hcaptcha' | 'geetest'
+    hcaptcha_site_key?: string
+    geetest_captcha_id?: string
     logo?: string
     github_oauth?: boolean
     github_client_id?: string

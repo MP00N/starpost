@@ -127,11 +127,14 @@ export function ThemeCustomizationProvider(props: {
 
   // Mirror state to the <body> via data-* attributes so theme-presets.css can
   // override CSS variables at the right cascade layer.
+  //
+  // Always write the attribute, including for the default preset. The previous
+  // version wrote `null` whenever the preset matched the default, which only
+  // worked while the default happened to be `default` (whose tokens live in
+  // :root). Now that the shipped default is `starpost`, skipping the attribute
+  // left every starpost rule dead.
   useEffect(() => {
-    applyAttribute(
-      'data-theme-preset',
-      preset === DEFAULT_THEME_CUSTOMIZATION.preset ? null : preset
-    )
+    applyAttribute('data-theme-preset', preset)
   }, [preset])
 
   // Resolve Auto into the preset font or the browser's sans-serif while

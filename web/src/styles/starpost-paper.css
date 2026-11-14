@@ -1,0 +1,121 @@
+/**
+ * 驿纸 — the console's paper, painted onto the elements that already own the
+ * page background.
+ *
+ * Previous attempt mounted a fixed `.sp-surface` sibling and fought the stacking
+ * order: body's background is opaque, so the layer needed to sit above it, but
+ * then the content wrappers painted over it. Tuning z-index and opacity did not
+ * converge because the problem was ownership, not values.
+ *
+ * This paints the paper directly on [data-slot='sidebar-inset'] — the element
+ * that IS the page background — so there is no stacking contest at all. Same
+ * material, four layers in one `background-image`:
+ *
+ *   1. 远山   one ink band at the top edge
+ *   2. 纸纹   38px vertical grain, the 帘距 of laid paper
+ *   3. 界格   96px columns
+ *   4. 底色   warm off-white, slightly tinted toward the primary
+ *
+ * Percentages are kept low: this sits behind data tables, so it must be legible
+ * as texture and invisible as noise.
+ */
+
+[data-theme-preset='starpost'] [data-slot='sidebar-inset'] {
+  background-color: var(--background);
+  background-image:
+    /* 1 · 远山 — 只在顶部一条，往下褪尽 */
+    radial-gradient(
+      62% 120px at 16% 0%,
+      color-mix(in oklch, var(--sp-indigo, var(--primary)) 9%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      48% 96px at 54% 0%,
+      color-mix(in oklch, var(--sp-indigo, var(--primary)) 6%, transparent),
+      transparent 72%
+    ),
+    radial-gradient(
+      66% 104px at 88% 0%,
+      color-mix(in oklch, var(--sp-celadon, var(--secondary)) 7%, transparent),
+      transparent 70%
+    ),
+    /* 2 · 纸纹 — 38px 一条竖纹，模拟帘纹纸 */
+    repeating-linear-gradient(
+      to right,
+      color-mix(in oklch, var(--foreground) 1.4%, transparent) 0 1px,
+      transparent 1px 38px
+    ),
+    /* 3 · 界格 — 96px 列，很淡，只作为节奏感 */
+    repeating-linear-gradient(
+      to right,
+      color-mix(in oklch, var(--foreground) 4.5%, transparent) 0 1px,
+      transparent 1px 96px
+    );
+  background-attachment: local, local, local, local, local;
+  background-position: center top;
+}
+
+/* 侧栏也是一张纸，纹路同向，但界格跟着侧栏自己的宽度走 */
+[data-theme-preset='starpost'] [data-slot='sidebar-inner'] {
+  background-color: color-mix(in oklch, var(--background) 96%, var(--foreground));
+  background-image: repeating-linear-gradient(
+    to right,
+    color-mix(in oklch, var(--foreground) 1.4%, transparent) 0 1px,
+    transparent 1px 38px
+  );
+  border-right: 1px solid var(--sp-rule-soft);
+}
+
+/* 顶栏：纸色，下面一条发丝线，不要投影 */
+[data-theme-preset='starpost'] header[data-slot='navbar'] {
+  background-color: color-mix(in oklch, var(--background) 97%, var(--foreground));
+  border-bottom: 1px solid var(--sp-rule-soft);
+  box-shadow: none;
+}
+
+/* 卡片半透：让纸纹从底下透一点上来，但不影响读数 */
+[data-theme-preset='starpost'] [data-slot='card'] {
+  background-color: color-mix(in oklch, var(--card) 86%, transparent);
+  border: 1px solid var(--sp-rule-soft);
+  box-shadow: none;
+}
+
+/* 对话框 / 浮层要实一些，浮在纸上不读字 */
+[data-theme-preset='starpost'] [data-slot='dialog'],
+[data-theme-preset='starpost'] [data-slot='popover'],
+[data-theme-preset='starpost'] [data-slot='dropdown-menu'],
+[data-theme-preset='starpost'] [data-slot='sheet'] {
+  background-color: var(--popover);
+  border: 1px solid var(--sp-rule-soft);
+  box-shadow: 0 12px 32px -28px color-mix(in oklch, var(--foreground) 55%, transparent);
+}
+
+/* 夜里：纸变深，纹路再压一半，否则像脏 */
+.dark [data-theme-preset='starpost'] [data-slot='sidebar-inset'] {
+  background-image:
+    radial-gradient(
+      62% 120px at 16% 0%,
+      color-mix(in oklch, var(--sp-indigo, var(--primary)) 14%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      48% 96px at 54% 0%,
+      color-mix(in oklch, var(--sp-indigo, var(--primary)) 9%, transparent),
+      transparent 72%
+    ),
+    radial-gradient(
+      66% 104px at 88% 0%,
+      color-mix(in oklch, var(--sp-celadon, var(--secondary)) 10%, transparent),
+      transparent 70%
+    ),
+    repeating-linear-gradient(
+      to right,
+      color-mix(in oklch, var(--foreground) 2.4%, transparent) 0 1px,
+      transparent 1px 38px
+    ),
+    repeating-linear-gradient(
+      to right,
+      color-mix(in oklch, var(--foreground) 6%, transparent) 0 1px,
+      transparent 1px 96px
+    );
+}

@@ -7,6 +7,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 	"unsafe"
 
 	kitutil "github.com/QuantumNous/new-api/relaykit/relayconvert/kitutil"
@@ -21,7 +22,13 @@ func LocalLogPreview(content string) string {
 	if DebugEnabled || len(content) <= LocalLogContentLimit {
 		return content
 	}
-	return fmt.Sprintf("%s... [truncated, original_length=%d, limit=%d]", content[:LocalLogContentLimit], len(content), LocalLogContentLimit)
+	// Truncate on a UTF-8 rune boundary. Slicing at a fixed byte offset can split
+	// a multi-byte rune, producing invalid UTF-8 in logs that carry CJK text.
+	end := LocalLogContentLimit
+	for end > 0 && !utf8.RuneStart(content[end]) {
+		end--
+	}
+	return fmt.Sprintf("%s... [truncated, original_length=%d, limit=%d]", content[:end], len(content), LocalLogContentLimit)
 }
 
 func GetStringIfEmpty(str string, defaultValue string) string {

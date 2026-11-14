@@ -85,7 +85,10 @@ export function SectionPageLayout(props: SectionPageLayoutProps) {
           {breadcrumb != null && (
             <div className='mb-2 sm:mb-3'>{breadcrumb}</div>
           )}
-          <div className='flex flex-wrap items-center justify-between gap-x-3 gap-y-2 sm:gap-x-4'>
+          <div
+            data-slot='page-head'
+            className='flex flex-wrap items-center justify-between gap-x-3 gap-y-2 sm:gap-x-4'
+          >
             <div
               className={
                 props.stackActionsOnMobile
@@ -93,7 +96,10 @@ export function SectionPageLayout(props: SectionPageLayoutProps) {
                   : 'min-w-0 flex-1'
               }
             >
-              <h2 className='truncate text-base font-bold tracking-tight sm:text-lg'>
+              <h2
+                data-slot='page-title'
+                className='truncate text-base font-bold tracking-tight sm:text-lg'
+              >
                 {title}
               </h2>
             </div>
