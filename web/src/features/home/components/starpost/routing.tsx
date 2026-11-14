@@ -28,7 +28,6 @@ For commercial licensing, please contact support@quantumnous.com
 import { useEffect, useRef } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
 
-import { EASE_OUT } from './motion'
 import { Seal } from './seal'
 import {
   CENTER,
@@ -255,7 +254,7 @@ export function RoutingDiagram(props: RoutingDiagramProps) {
       <g data-kind='couriers' />
 
       {/* Inbound entry marks */}
-      {ROUTE_CLIENTS.map((client, index) => (
+      {ROUTE_CLIENTS.map((client) => (
         <circle
           key={`${client.id}-dot`}
           cx={client.x}

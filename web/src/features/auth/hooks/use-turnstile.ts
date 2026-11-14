@@ -38,10 +38,12 @@ export function useTurnstile() {
   let turnstileSiteKey = ''
   let isTurnstileEnabled = false
   if (provider === 'hcaptcha') {
-    turnstileSiteKey = status?.hcaptcha_site_key ?? ''
+    const siteKey = status?.hcaptcha_site_key
+    turnstileSiteKey = typeof siteKey === 'string' ? siteKey : ''
     isTurnstileEnabled = turnstileSiteKey.length > 0
   } else if (provider === 'geetest') {
-    turnstileSiteKey = status?.geetest_captcha_id ?? ''
+    const captchaId = status?.geetest_captcha_id
+    turnstileSiteKey = typeof captchaId === 'string' ? captchaId : ''
     isTurnstileEnabled = turnstileSiteKey.length > 0
   } else if (provider === 'none') {
     isTurnstileEnabled = false

@@ -79,7 +79,6 @@ export function InkMountains() {
     if (!host) return
 
     let frame = 0
-    let last = 0
     const apply = () => {
       frame = 0
       const y = window.scrollY
@@ -87,7 +86,6 @@ export function InkMountains() {
       // the ranges cannot slide out of the band.
       const progress = Math.min(1, y / 900)
       host.style.setProperty('--sp-ink-progress', progress.toFixed(4))
-      last = y
     }
     const onScroll = () => {
       if (frame !== 0) return

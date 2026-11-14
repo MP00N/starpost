@@ -32,9 +32,6 @@ import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Link } from '@tanstack/react-router'
-
-import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 
 import { AnomalyLedger } from './anomalies'
