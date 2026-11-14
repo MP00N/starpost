@@ -488,3 +488,104 @@ export type UpstreamRatiosResponse = {
     test_results: TestResult[]
   }
 }
+
+// ---------------------------------------------------------------------------
+// Official price synchronization
+//
+// The backend measures the feed's currency on every run rather than assuming
+// it, so the status carries the evidence (`feed_currency`, `usd_votes`,
+// `cny_votes`) and the card can show it instead of asking the administrator to
+// trust a label.
+// ---------------------------------------------------------------------------
+
+export type PricingSyncRun = {
+  currency: string
+  scope: string
+  source: string
+  feed_currency: string
+  currency_verified: boolean
+  usd_votes: number
+  cny_votes: number
+  official_models: number
+  considered: number
+  updated: number
+  unchanged: number
+  skipped: number
+  failed: number
+  exchange_rate: number
+  published_cny_used: number
+  // Models the two feeds price differently. They are excluded from the
+  // currency vote but still synchronized.
+  unclassified?: string[]
+  skipped_models?: string[]
+  warnings?: string[]
+  finished_at: number
+}
+
+export type PricingSyncStatus = {
+  enabled: boolean
+  interval_hours: number
+  currency: 'auto' | 'USD' | 'CNY'
+  resolved_currency: string
+  scope: 'served' | 'all'
+  exchange_rate: number
+  site_display_currency: string
+  // The same task row the scheduler writes, so the card reports exactly what
+  // an administrator would find in the task list.
+  last_run: SystemTask<
+    Record<string, unknown>,
+    Record<string, unknown>,
+    PricingSyncRun
+  > | null
+  running: boolean
+}
+
+export type PricingSyncStatusResponse = {
+  success: boolean
+  message: string
+  data: PricingSyncStatus
+}
+
+export type PricingSyncPreviewResponse = {
+  success: boolean
+  message: string
+  data: PricingSyncRun
+}
+
+// ---------------------------------------------------------------------------
+// Official icon synchronization
+// ---------------------------------------------------------------------------
+
+export type IconSyncRun = {
+  models_scanned: number
+  vendors_scanned: number
+  models_updated: number
+  vendors_updated: number
+  already_set: number
+  no_upstream_icon: number
+  sample?: string[]
+}
+
+export type IconSyncStatus = {
+  enabled: boolean
+  interval_hours: number
+  overwrite: boolean
+  last_run: SystemTask<
+    Record<string, unknown>,
+    Record<string, unknown>,
+    IconSyncRun
+  > | null
+  running: boolean
+}
+
+export type IconSyncStatusResponse = {
+  success: boolean
+  message: string
+  data: IconSyncStatus
+}
+
+export type IconSyncPreviewResponse = {
+  success: boolean
+  message: string
+  data: IconSyncRun
+}

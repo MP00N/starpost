@@ -175,7 +175,10 @@ export function DataTableCardGrid<TData>(props: DataTableCardGridProps<TData>) {
   }
 
   return (
-    <div className={props.gridClassName ?? DEFAULT_GRID_CLASSNAME}>
+    <div
+      data-slot='data-table-card-grid'
+      className={props.gridClassName ?? DEFAULT_GRID_CLASSNAME}
+    >
       {rows.map((row) => {
         const key = props.getRowKey ? props.getRowKey(row) : row.id
         const isSelected = row.getIsSelected()

@@ -1,0 +1,312 @@
+/**
+ * 页 — the page layer.
+ *
+ * The shell (sidebar, navbar, paper) and the parts (dialogs, badges, inputs)
+ * already spoke this language. The pages themselves did not: 表格是一块圆角白卡、
+ * 渠道是一格一格浮着的小卡、统计是一排药丸、设置是一摞卡片。换到「驿」这套纸墨
+ * 上，它们读起来像别的软件的截图。
+ *
+ * 这一层只改「一页由什么构成」的四件事：
+ *
+ *   版心   the table is a 册页 — double rule around it, not a floating card
+ *   界格   column headers are the 界格: vertical hairlines turn the header row
+ *          into a ruled band, and every figure column gets the same rhythm
+ *   签条   a channel is a 签 (a paper slip), not a floating tile: square, ruled,
+ *          with a vermilion edge only when selected
+ *   注     labels are 夹注 — small, wide-tracked, set above the value
+ *
+ * 朱砂 remains semantic: selected, live, failing. Nothing here is decorative red.
+ */
+
+/* ── 1 · 表格：一册，不是一个浮层 ─────────────────────────────────────────
+ * The stock frame is `rounded-lg border` on a slightly lifted surface — the
+ * language of a floating SaaS card. A 册页 is flat on the paper: square, outer
+ * hairline, and an inner rule offset 3px, the same 裱边 the dialogs use. */
+[data-theme-preset='starpost'] [data-slot='data-table-frame'] {
+  border-radius: 0;
+  border: 1px solid var(--sp-rule-strong, var(--sp-rule));
+  background: color-mix(in oklch, var(--card) 72%, transparent);
+  box-shadow:
+    inset 0 0 0 3px transparent,
+    inset 0 0 0 4px var(--sp-rule-soft);
+}
+
+/* 表头：界格。列与列之间一条竖线，把表头变成一栏栏的格，这是整页最强的中国记号，
+ * 而且它同时是结构——分隔的是数据列，不是装饰。 */
+[data-theme-preset='starpost'] [data-slot='data-table-frame'] [data-slot='table-head'] {
+  border-right: 1px solid var(--sp-rule-soft);
+  font-weight: 500;
+}
+
+[data-theme-preset='starpost']
+  [data-slot='data-table-frame']
+  [data-slot='table-head']:last-child {
+  border-right: 0;
+}
+
+/* 表头那个 band 本身再压一道重一点的下缘，像界格的横档 */
+[data-theme-preset='starpost'] [data-slot='data-table-frame'] [data-slot='table-header'] tr {
+  border-bottom: 1px solid var(--sp-rule);
+}
+
+/* 行：不悬空，落在格上。最后一行下面留一点纸，不要贴着外框。 */
+[data-theme-preset='starpost'] [data-slot='data-table-frame'] [data-slot='table-row'] {
+  border-top: 1px solid var(--sp-kaige-global);
+}
+
+/* 钉住的列原本靠一圈投影和背景区分；纸上没有投影，改用右侧一条实线 */
+[data-theme-preset='starpost'] [data-slot='data-table-frame'] td.sticky {
+  box-shadow: none;
+}
+
+[data-theme-preset='starpost'] [data-slot='data-table-frame'] td.sticky[class*='left-0'] {
+  border-right: 1px solid var(--sp-rule-soft);
+}
+
+[data-theme-preset='starpost'] [data-slot='data-table-frame'] td.sticky[class*='right-0'] {
+  border-left: 1px solid var(--sp-rule-soft);
+}
+
+/* 选中行：左缘一条朱砂，不用整行底色翻转——账本上划的是线，不是荧光笔 */
+[data-theme-preset='starpost'] [data-slot='data-table-frame'] [data-slot='table-row'][data-state='selected'] {
+  background: color-mix(in oklch, var(--sp-seal-ink) 5%, transparent);
+  box-shadow: inset 2px 0 0 var(--sp-seal-ink);
+}
+
+[data-theme-preset='starpost']
+  [data-slot='data-table-frame']
+  [data-slot='table-row'][data-state='selected']
+  > [data-slot='table-cell']:first-child {
+  box-shadow: inset 2px 0 0 var(--sp-seal-ink);
+}
+
+/* ── 2 · 渠道卡：一枚签，不是一块浮起来的瓦 ───────────────────────────────
+ * Card view is the default on 渠道, so this is the most-seen surface in the
+ * console. Stock is `rounded-lg border bg-(--table-row)` in a 3-column grid —
+ * three floating tiles per row. A 签 is square, sits inside a rule, and is
+ * separated by the rule rather than by a gap. */
+[data-theme-preset='starpost'] [data-slot='data-table-card'] {
+  border-radius: 0;
+  border: 1px solid var(--sp-rule-soft);
+  background: color-mix(in oklch, var(--card) 78%, transparent);
+  /* 签条右上角一个极淡的折角，像纸被翻过 */
+  background-image: linear-gradient(
+    225deg,
+    transparent 0,
+    transparent calc(100% - 9px),
+    color-mix(in oklch, var(--foreground) 4%, transparent) calc(100% - 9px),
+    color-mix(in oklch, var(--foreground) 4%, transparent) 100%
+  );
+  box-shadow: none;
+}
+
+[data-theme-preset='starpost'] [data-slot='data-table-card']:hover {
+  border-color: var(--sp-rule);
+}
+
+/* 选中的签：左缘朱砂 + 内衬一条更淡的线，像盖了印的签 */
+[data-theme-preset='starpost'] [data-slot='data-table-card'][data-state='selected'] {
+  border-color: color-mix(in oklch, var(--sp-seal-ink) 40%, transparent);
+  box-shadow: inset 2px 0 0 var(--sp-seal-ink);
+  background-color: color-mix(in oklch, var(--sp-seal-ink) 4%, var(--card));
+}
+
+/* 签内的字段名：夹注——小字、宽字距、压在数值上方 */
+[data-theme-preset='starpost'] [data-slot='data-table-card'] dt,
+[data-theme-preset='starpost'] [data-slot='data-table-card'] [data-column-id] > span:first-child {
+  letter-spacing: 0.14em;
+  font-size: 10px;
+  color: var(--muted-foreground);
+}
+
+/* 签顶那一行（类型签 + 状态 + 操作）和正文之间压一条发丝，签就分成「头」和「文」 */
+[data-theme-preset='starpost'] [data-slot='data-table-card'] > div > div:first-child {
+  padding-bottom: 7px;
+  border-bottom: 1px solid var(--sp-kaige-global);
+}
+
+/* 分组签：从药丸压成小方签，带上细边 */
+[data-theme-preset='starpost'] [data-slot='data-table-card'] [data-slot='badge'] {
+  border-radius: 0;
+  border: 1px solid var(--sp-rule-soft);
+  background: transparent;
+  height: 18px;
+  min-width: 0;
+  padding: 0 5px;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+}
+
+/* 签内的数值：等宽，账目对齐 */
+[data-theme-preset='starpost'] [data-slot='data-table-card'] dd,
+[data-theme-preset='starpost'] [data-slot='data-table-card'] [data-column-id] {
+  font-variant-numeric: tabular-nums;
+}
+
+/* 禁用的签：整张压暗而不是变灰块 */
+[data-theme-preset='starpost'] [data-slot='data-table-card'][data-disabled='true'] {
+  opacity: 0.7;
+}
+
+/* 卡网格：签条排成一张名册。间距收窄，让格线比空白更显眼——原来 16px 的空隙
+ * 把每张签推成独立的一块瓦。 */
+[data-theme-preset='starpost'] [data-slot='data-table-card-grid'] {
+  gap: 8px;
+}
+
+/* ── 3 · 筛条：一条横档，不是一排浮动的输入框 ───────────────────────────── */
+[data-theme-preset='starpost'] [data-slot='data-table-toolbar'] {
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--sp-rule-soft);
+}
+
+/* 搜索框在筛条里要短一点、字要收，像写在眉批上 */
+[data-theme-preset='starpost'] [data-slot='data-table-toolbar'] [data-slot='input'] {
+  font-size: 12.5px;
+  letter-spacing: 0.01em;
+}
+
+/* 筛选下拉：方签 + 虚线边已经是原生的了，这里只压字距 */
+[data-theme-preset='starpost'] [data-slot='data-table-toolbar'] [data-slot='button'] {
+  letter-spacing: 0.015em;
+}
+
+/* ── 4 · 分页：页码是帐脚的编号 ───────────────────────────────────────────
+ * Stock pagination is a row of outlined pill buttons. On paper the page
+ * numbers are set as figures in a 帐脚, separated by space, and only the
+ * current page carries the seal. */
+[data-theme-preset='starpost'] [data-slot='data-table-pagination'] [data-slot='button'] {
+  border-radius: 0;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+}
+
+[data-theme-preset='starpost'] [data-slot='data-table-pagination'] [data-slot='button']:disabled {
+  opacity: 0.35;
+}
+
+/* ── 5 · 统计笺：几枚小签，不是几粒药丸 ───────────────────────────────────
+ * The log summary chips were `rounded-md border bg-muted/25` with a coloured
+ * 2px cap. As a 笺: square, ruled on the left instead of capped, figure in mono. */
+[data-theme-preset='starpost'] [data-slot='log-stat'] {
+  border-radius: 0;
+  border-color: var(--sp-rule-soft);
+  background: color-mix(in oklch, var(--card) 70%, transparent);
+  box-shadow: none;
+  height: 30px;
+  padding: 0 10px;
+  letter-spacing: 0.02em;
+}
+
+[data-theme-preset='starpost'] [data-slot='log-stat-mark'] {
+  width: 1px;
+  height: 15px;
+  border-radius: 0;
+  opacity: 0.75;
+}
+
+[data-theme-preset='starpost'] [data-slot='log-stat'] > span:last-child {
+  font-feature-settings: 'tnum';
+}
+
+/* ── 6 · 日志详情：一行一条，像簿册的条目 ─────────────────────────────────
+ * Detail rows were a 5.25rem / 1fr grid of two 12px lines with no rule between
+ * them. In a 簿册 each entry sits on its own line and the label is 夹注. */
+[data-theme-preset='starpost'] [data-slot='log-detail-row'] {
+  padding: 4px 0;
+  border-bottom: 1px dotted var(--sp-rule-soft);
+  align-items: baseline;
+}
+
+[data-theme-preset='starpost'] [data-slot='log-detail-row']:last-child {
+  border-bottom: 0;
+}
+
+[data-theme-preset='starpost'] [data-slot='log-detail-row'] > span:first-child {
+  letter-spacing: 0.1em;
+  font-size: 10.5px;
+}
+
+[data-theme-preset='starpost'] [data-slot='log-detail-section'] > [data-slot='label'] {
+  letter-spacing: 0.12em;
+  font-size: 10.5px;
+  font-weight: 500;
+  text-transform: none;
+}
+
+/* 详情里的分组框：一张更小的纸，方角 + 内衬线，不是一块灰底 */
+[data-theme-preset='starpost'] [data-slot='log-detail-box'] {
+  border-radius: 0;
+  border-color: var(--sp-rule-soft);
+  background: color-mix(in oklch, var(--background) 55%, transparent);
+  box-shadow: inset 0 0 0 3px transparent, inset 0 0 0 4px var(--sp-kaige-global);
+}
+
+/* ── 7 · 设置页：一页条款，不是一摞卡片 ───────────────────────────────────
+ * Every settings page is a stack of the same Card. On paper they read as one
+ * continuous 条陈: the card loses its own border and the section takes over as
+ * the ruling unit. Only the outer frame survives. */
+[data-theme-preset='starpost'] [data-slot='card'] {
+  border-radius: 0;
+}
+
+[data-theme-preset='starpost'] [data-slot='card-title'] {
+  font-family: var(--font-serif, ui-serif, Georgia, serif);
+  font-size: 15px;
+  letter-spacing: 0.01em;
+  padding-left: 9px;
+  border-left: 2px solid color-mix(in oklch, var(--sp-seal-ink) 70%, transparent);
+  line-height: 1.35;
+}
+
+[data-theme-preset='starpost'] [data-slot='card-description'] {
+  font-size: 11.5px;
+  letter-spacing: 0.02em;
+  line-height: 1.5;
+}
+
+/* 设置页的 section 标题（不是 Card，是裸 h3）：题签处理 */
+[data-theme-preset='starpost'] [data-slot='settings-section'] > div > h3 {
+  font-family: var(--font-serif, ui-serif, Georgia, serif);
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: 0.01em;
+  padding-left: 9px;
+  border-left: 2px solid color-mix(in oklch, var(--sp-seal-ink) 70%, transparent);
+}
+
+[data-theme-preset='starpost'] [data-slot='settings-section'] {
+  padding-bottom: 4px;
+}
+
+/* 设置项之间的分隔：纸上用点线，像表格里的细分隔 */
+[data-theme-preset='starpost'] [data-slot='form-item'] label,
+[data-theme-preset='starpost'] [data-slot='form-label'] {
+  letter-spacing: 0.015em;
+}
+
+/* 表单说明文字：夹注 */
+[data-theme-preset='starpost'] [data-slot='form-description'] {
+  letter-spacing: 0.015em;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+/* 开关行：只给真正占满一行的那类加下缘线。
+ * 不能给所有 form-item 加——设置页是两列网格，每格都画线会变成高度不齐的假表格。 */
+[data-theme-preset='starpost'] [data-slot='form-item']:has([data-slot='switch']) {
+  border-bottom: 1px dotted var(--sp-kaige-global);
+  padding-bottom: 10px;
+}
+
+/* ── 8 · 页脚：一条发丝，不要一整块背景 ─────────────────────────────────── */
+[data-theme-preset='starpost'] [data-slot='sidebar-inset'] > * > footer {
+  background: transparent;
+  border-top: 1px solid var(--sp-rule-soft);
+}
+
+/* ── 9 · 夜里：线要亮一点，卡片再压暗半格 ───────────────────────────────── */
+.dark [data-theme-preset='starpost'] [data-slot='data-table-frame'],
+.dark [data-theme-preset='starpost'] [data-slot='data-table-card'] {
+  background-color: color-mix(in oklch, var(--card) 88%, transparent);
+}

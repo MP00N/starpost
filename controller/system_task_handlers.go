@@ -23,6 +23,73 @@ func RegisterScheduledSystemTasks() {
 	service.RegisterSystemTaskHandler(midjourneyPollHandler{})
 	service.RegisterSystemTaskHandler(asyncTaskPollHandler{})
 	service.RegisterSystemTaskHandler(systemTaskCleanupHandler{})
+	service.RegisterSystemTaskHandler(pricingSyncHandler{})
+	service.RegisterSystemTaskHandler(iconSyncHandler{})
+}
+
+// iconSyncHandler fills in model and vendor brand marks on the interval
+// configured in the model settings. Enablement comes from icon_sync_setting, so
+// turning the switch off stops scheduling without a restart.
+type iconSyncHandler struct{}
+
+func (iconSyncHandler) Type() string { return model.SystemTaskTypeIconSync }
+
+func (iconSyncHandler) Enabled() bool {
+	return operation_setting.GetIconSyncSetting().Enabled
+}
+
+func (iconSyncHandler) Interval() time.Duration {
+	hours := operation_setting.GetIconSyncSetting().IntervalHours
+	if hours < operation_setting.MinIconSyncIntervalHours {
+		hours = operation_setting.DefaultIconSyncIntervalHours
+	}
+	return time.Duration(hours) * time.Hour
+}
+
+func (iconSyncHandler) NewPayload() any { return nil }
+
+func (iconSyncHandler) Run(ctx context.Context, task *model.SystemTask, runnerID string) {
+	result, err := service.RunIconSyncExclusive(ctx, false)
+	if err != nil {
+		finishSystemTaskHandler(task, runnerID, model.SystemTaskStatusFailed, result, err)
+		return
+	}
+	finishSystemTaskHandler(task, runnerID, model.SystemTaskStatusSucceeded, result, nil)
+}
+
+// pricingSyncHandler runs the official price synchronization on the interval
+// configured in the models settings. Enablement and cadence come from
+// pricing_sync_setting, so turning the switch off stops scheduling without a
+// restart: the scheduler asks Enabled() before creating each row.
+type pricingSyncHandler struct{}
+
+func (pricingSyncHandler) Type() string { return model.SystemTaskTypePricingSync }
+
+func (pricingSyncHandler) Enabled() bool {
+	return operation_setting.GetPricingSyncSetting().Enabled
+}
+
+func (pricingSyncHandler) Interval() time.Duration {
+	hours := operation_setting.GetPricingSyncSetting().IntervalHours
+	if hours < operation_setting.MinPricingSyncIntervalHours {
+		hours = operation_setting.DefaultPricingSyncIntervalHours
+	}
+	return time.Duration(hours) * time.Hour
+}
+
+func (pricingSyncHandler) NewPayload() any { return nil }
+
+func (pricingSyncHandler) Run(ctx context.Context, task *model.SystemTask, runnerID string) {
+	result, err := service.RunPricingSyncExclusive(ctx, false, service.NewSystemTaskProgressReporter(task, runnerID))
+	if err != nil {
+		if result != nil {
+			finishSystemTaskHandler(task, runnerID, model.SystemTaskStatusFailed, result, err)
+			return
+		}
+		finishSystemTaskHandler(task, runnerID, model.SystemTaskStatusFailed, nil, err)
+		return
+	}
+	finishSystemTaskHandler(task, runnerID, model.SystemTaskStatusSucceeded, result, nil)
 }
 
 // systemTaskCleanupHandler deletes, once a day, the finished system tasks

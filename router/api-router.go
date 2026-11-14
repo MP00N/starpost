@@ -275,6 +275,15 @@ func SetApiRouter(router *gin.Engine) {
 		{
 			ratioSyncRoute.GET("/channels", controller.GetSyncableChannels)
 			ratioSyncRoute.POST("/fetch", controller.FetchUpstreamRatios)
+			// Official price synchronization. Preview is a dry run; trigger
+			// queues the same job the scheduler runs.
+			ratioSyncRoute.GET("/official/status", controller.GetPricingSyncStatus)
+			ratioSyncRoute.POST("/official/preview", controller.PreviewPricingSync)
+			ratioSyncRoute.POST("/official/run", controller.TriggerPricingSync)
+			// Official icon synchronization: same preview/run split.
+			ratioSyncRoute.GET("/icons/status", controller.GetIconSyncStatus)
+			ratioSyncRoute.POST("/icons/preview", controller.PreviewIconSync)
+			ratioSyncRoute.POST("/icons/run", controller.TriggerIconSync)
 		}
 		taskPluginRoute := apiRouter.Group("/plugin/task")
 		taskPluginRoute.Use(middleware.RootAuth())

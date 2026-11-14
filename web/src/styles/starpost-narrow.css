@@ -1,0 +1,129 @@
+/**
+ * 窄屏 — layout repairs.
+ *
+ * The screenshots showed three concrete failures at a 360px viewport that are
+ * not about taste:
+ *
+ *   1. 内容被切  Content runs past the right edge with no way to reach it.
+ *   2. 太挤       Fixed multi-column grids squeeze 7-column tables into 340px.
+ *   3. 缩小后更糟 Zooming out re-triggers desktop breakpoints inside a phone.
+ *
+ * These are fixed here rather than by editing thirty feature files, because
+ * every one of them is a consequence of the same three wrappers.
+ *
+ * Nothing here changes the desktop rendering: every rule is inside a
+ * `max-width` query, so a wide viewport is untouched.
+ */
+
+/* ── 1 · 页容器必须允许子元素撑开而不是被裁 ───────────────────────────────
+ * `SectionPageLayout` wraps content in `overflow-hidden` when a page passes
+ * `fixedContent`. That is right for a page whose one child manages its own
+ * scrolling (a data table), but it silently clips any child that is wider
+ * than the viewport — the reconciliation tables, the dashboard panels.
+ *
+ * On narrow screens turn the clip into a scroll instead. The child keeps its
+ * intrinsic width; the user can reach the rest.
+ *
+ * The hook is `data-slot='page-content'` on that wrapper. Targeting `main`
+ * instead does nothing, because `main` is not the element that clips. */
+@media (max-width: 767px) {
+  [data-theme-preset='starpost'] [data-slot='page-content'] {
+    overflow-x: auto;
+    overflow-y: auto;
+  }
+}
+
+/* ── 2 · 数据表：撑开，然后横向滚动 ───────────────────────────────────────
+ * The frame is `overflow-hidden` so the header band's corner stays square.
+ * That also clips the table when its columns exceed the viewport. Give the
+ * scroll container its own overflow on narrow screens. */
+@media (max-width: 767px) {
+  [data-theme-preset='starpost'] [data-slot='data-table-frame'] {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* 表头在窄屏吸顶会和横向滚动打架，关掉 */
+  [data-theme-preset='starpost'] [data-slot='data-table-frame'] [data-slot='table-header'] {
+    position: static;
+  }
+
+  [data-theme-preset='starpost'] [data-slot='table'] {
+    /* 列压到 100px 以下就读不出来了；宁可横滚 */
+    min-width: 640px;
+  }
+
+  /* 钉住的列在窄屏上占掉两头、中间只剩几十像素，直接取消钉住 */
+  [data-theme-preset='starpost'] [data-slot='data-table-frame'] td.sticky,
+  [data-theme-preset='starpost'] [data-slot='data-table-frame'] th.sticky {
+    position: static;
+    box-shadow: none;
+  }
+}
+
+/* ── 3 · 卡片视图：单列铺满，不要三列压扁 ─────────────────────────────────
+ * The channels card grid is `lg:grid-cols-3`, which is fine. But the shared
+ * default is `md:grid-cols-2`, and at 360px some pages still force two columns
+ * via an explicit `grid-cols-2` on an inner block. */
+@media (max-width: 480px) {
+  [data-theme-preset='starpost'] [data-slot='data-table-card-grid'] {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 统计卡的详情两列在窄屏会挤成竖排文字，改单列 */
+@media (max-width: 420px) {
+  [data-theme-preset='starpost'] [data-slot='data-table-card'] dl {
+    gap-y: 4px;
+  }
+}
+
+/* ── 4 · 仪表盘的固定高度图表 ─────────────────────────────────────────────
+ * Several panels set `h-[300px]` / `h-96` plus `overflow-hidden`. On a phone
+ * the chart's own axis labels then get cut. Let the panel grow. */
+@media (max-width: 767px) {
+  [data-theme-preset='starpost'] .recharts-responsive-container {
+    min-height: 180px;
+  }
+}
+
+/* ── 5 · 缩放（zoom out）后的问题 ─────────────────────────────────────────
+ * When a phone browser is zoomed out it reports a *larger* `innerWidth`, so
+ * `useIsMobile` (768px) flips to false and the desktop sidebar is rendered
+ * inside a viewport that is still physically narrow. The media queries below
+ * cannot know about zoom, but CSS `min-resolution` does change under zoom on
+ * some engines — unreliable. What *is* reliable: the sidebar is `hidden
+ * md:block`, so if it is rendered the viewport really is ≥768 CSS px, and the
+ * other rules in this file are already inactive. The remaining zoom symptom is
+ * text becoming illegible rather than clipped, so floor the base size. */
+[data-theme-preset='starpost'] {
+  /* 不让用户把根字号缩到无法阅读 */
+  text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* ── 6 · 页头动作按钮在窄屏溢出 ───────────────────────────────────────────
+ * `SectionPageLayout`'s actions row is `flex-wrap`, but the title is
+ * `truncate` inside a `flex-1`, so a wide action set pushes the title to a
+ * few characters. Stack them instead. */
+@media (max-width: 639px) {
+  [data-theme-preset='starpost'] [data-slot='page-head'] {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  [data-theme-preset='starpost'] [data-slot='page-head'] > div:last-child {
+    justify-content: flex-start;
+  }
+}
+
+/* ── 7 · 分页在窄屏：只留翻页，隐藏页码 ───────────────────────────────────
+ * 360px 放不下「共 N 条 + 每页 N + 首页 + 上一页 + 12 个页码 + 下一页」。
+ * 页码在窄屏是负担，保留总数与上一页/下一页就够。 */
+@media (max-width: 639px) {
+  [data-theme-preset='starpost'] [data-slot='data-table-pagination'] {
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+}

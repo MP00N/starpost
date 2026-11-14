@@ -68,6 +68,7 @@ import {
   OPENROUTER_ENDPOINT,
 } from './constants'
 import { PriceAdjustmentSelect } from './price-adjustment-select'
+import { PricingSyncCard } from './pricing-sync-card'
 import {
   adjustSyncPrice,
   type PriceAdjustment,
@@ -387,6 +388,10 @@ export function UpstreamRatioSync() {
     isLoading || selectedModels.length === 0 || rate === null
   return (
     <div className='flex h-full min-h-0 flex-col gap-3'>
+      {/* Automatic synchronization sits above the manual comparison table: it
+          is the one-click path, and the table below is what an administrator
+          uses when a single model needs a different answer. */}
+      <PricingSyncCard />
       <div className='flex shrink-0 flex-wrap items-center gap-2'>
         <PriceAdjustmentSelect
           value={null}

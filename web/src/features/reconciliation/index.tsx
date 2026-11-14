@@ -20,24 +20,36 @@ For commercial licensing, please contact support@quantumnous.com
  * 对账 — reconciliation desk.
  *
  * The log list answers "what happened"; this answers "does the account add up".
- * Two halves:
  *
- *   左：按模型汇总。命中率、缓存读写 token、实收额度、按倍率重算的额度。
- *   右：可疑行。漏计费、缓存读数大于 prompt、实收与重算不符。
+ * Three columns, three different questions, and keeping them apart is the whole
+ * point:
  *
- * 重算在服务端做，因为缓存 token 藏在 logs.other 的 JSON 里，几万行在前端算
- * 会卡死浏览器。
+ *   实收   what the user was actually charged
+ *   重算   the rule in the request's own log replayed on its own numbers —
+ *          an accounting self-check; it should equal 实收 to within rounding
+ *   原价   the vendor's published list price on the same token mix — this is
+ *          what the request would cost at list, so 实收/原价 is your markup
+ *
+ * Every figure is quota (500,000 to the dollar) and every one is rendered as
+ * money. Printing raw quota is how a dollar of spend reads as half a million.
+ *
+ * Recomputation happens on the server: cache tokens live inside logs.other and
+ * tens of thousands of rows would freeze the browser here.
  */
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Skeleton } from '@/components/ui/skeleton'
+import { formatQuota } from '@/lib/format'
 
 import { AnomalyLedger } from './anomalies'
 import { getReconciliationAudit } from './api'
 
 const WINDOWS = [1, 7, 30] as const
+
+/** Quota is not money; 500,000 of it is one dollar. */
+const money = (quota: number) => formatQuota(quota)
 
 function Stat(props: {
   label: string
@@ -127,29 +139,49 @@ export function Reconciliation() {
         </p>
       )}
 
+      {data && data.unverifiable_rows > 0 && (
+        <p className='text-muted-foreground text-[12.5px]'>
+          {t(
+            '{{n}} rows carry no billing input in their log (older records), so they cannot be recomputed and are left out of the difference below.',
+            { n: data.unverifiable_rows }
+          )}
+        </p>
+      )}
+
       {data && (
         <>
-          <section className='border-border grid grid-cols-2 gap-4 rounded-md border p-4 sm:grid-cols-4'>
+          <section className='border-border grid grid-cols-2 gap-4 rounded-md border p-4 sm:grid-cols-5'>
             <Stat
               label={t('Charged')}
-              value={data.quota_total.toLocaleString()}
+              value={money(data.quota_total)}
               hint={t('{{n}} log rows', { n: data.rows })}
             />
             <Stat
               label={t('Recomputed')}
-              value={Math.round(data.expected_total).toLocaleString()}
-              hint={t('From token counts and ratios')}
+              value={money(data.expected_total)}
+              hint={t('Replayed from each request’s own log')}
             />
             <Stat
               label={t('Difference')}
-              value={`${diff >= 0 ? '+' : ''}${Math.round(diff).toLocaleString()}`}
+              value={`${diff >= 0 ? '+' : ''}${money(diff)}`}
               hint={`${(driftRatio * 100).toFixed(2)}%`}
               tone={driftRatio > 0.03 ? 'warning' : 'default'}
             />
             <Stat
+              label={t('At official list price')}
+              value={data.official_total > 0 ? money(data.official_total) : '—'}
+              hint={
+                data.official_total > 0
+                  ? t('{{n}}× what the vendor charges', {
+                      n: (data.quota_total / data.official_total).toFixed(2),
+                    })
+                  : t('No official price available yet')
+              }
+            />
+            <Stat
               label={t('Cache saved')}
-              value={(data.cache_saved_quota / data.quota_per_unit).toFixed(2)}
-              hint={t('USD, at full price')}
+              value={money(data.cache_saved_quota)}
+              hint={t('At full input price')}
             />
           </section>
 
@@ -166,12 +198,18 @@ export function Reconciliation() {
                     <th className='px-3 py-2 text-right font-medium'>{t('Cache write')}</th>
                     <th className='px-3 py-2 text-right font-medium'>{t('Charged')}</th>
                     <th className='px-3 py-2 text-right font-medium'>{t('Recomputed')}</th>
+                    <th className='px-3 py-2 text-right font-medium'>
+                      {t('At official list price')}
+                    </th>
+                    <th className='px-3 py-2 text-right font-medium'>
+                      {t('Markup')}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {data.models.length === 0 && (
                     <tr>
-                      <td colSpan={7} className='text-muted-foreground px-3 py-6 text-center'>
+                      <td colSpan={9} className='text-muted-foreground px-3 py-6 text-center'>
                         {t('No consumption in this window.')}
                       </td>
                     </tr>
@@ -190,7 +228,7 @@ export function Reconciliation() {
                         {model.cache_write.toLocaleString()}
                       </td>
                       <td className='px-3 py-2 text-right tabular-nums'>
-                        {model.quota.toLocaleString()}
+                        {money(model.quota)}
                       </td>
                       <td
                         className={
@@ -198,8 +236,23 @@ export function Reconciliation() {
                             ? 'text-destructive px-3 py-2 text-right tabular-nums'
                             : 'px-3 py-2 text-right tabular-nums'
                         }
+                        title={
+                          model.priced_by === 'none'
+                            ? t('This model’s requests carry no billing rule, so they cannot be recomputed')
+                            : undefined
+                        }
                       >
-                        {Math.round(model.expected).toLocaleString()}
+                        {model.priced_by === 'none'
+                          ? t('cannot recompute')
+                          : money(model.expected)}
+                      </td>
+                      <td className='text-muted-foreground px-3 py-2 text-right tabular-nums'>
+                        {model.has_official ? money(model.official) : '—'}
+                      </td>
+                      <td className='px-3 py-2 text-right tabular-nums'>
+                        {model.has_official && model.markup > 0
+                          ? `${model.markup.toFixed(2)}×`
+                          : '—'}
                       </td>
                     </tr>
                   ))}

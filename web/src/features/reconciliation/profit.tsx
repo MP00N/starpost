@@ -51,6 +51,7 @@ import {
 } from '@/components/ui/dialog'
 import { Skeleton } from '@/components/ui/skeleton'
 import { api } from '@/lib/api'
+import { formatQuota } from '@/lib/format'
 
 import { CostDrawer } from './cost-drawer'
 
@@ -60,9 +61,11 @@ type ProfitRow = {
   prompt: number
   completion: number
   cache_read: number
+  cache_write: number
   sell_ratio: number
   cost_ratio: number
   has_cost: boolean
+  cost_source: '' | 'configured' | 'official'
   revenue: number
   cost: number
   margin: number
@@ -78,9 +81,16 @@ type Hold = {
   force_listed: boolean
 }
 
-function fmt(n: number): string {
-  return Math.round(n).toLocaleString()
-}
+/**
+ * Money, not raw quota.
+ *
+ * Every figure on this page arrives in quota units (500,000 to the dollar). The
+ * page used to print them straight through `Math.round(n).toLocaleString()`,
+ * which shows 500000 for $1 — the "I spent a dollar but it says I spent a
+ * fortune" report. `formatQuota` divides by the quota unit and renders the
+ * admin's configured currency.
+ */
+const money = (quota: number) => formatQuota(quota)
 
 export function ModelProfit() {
   const { t } = useTranslation()
@@ -97,6 +107,10 @@ export function ModelProfit() {
         models: ProfitRow[]
         loss_count: number
         unknown_count: number
+        revenue_total: number
+        cost_total: number
+        margin_total: number
+        official_cost_models: number
       }
     },
   })
@@ -174,7 +188,7 @@ export function ModelProfit() {
               >
                 <span className='font-mono'>{hold.model}</span>
                 <span className='text-muted-foreground'>
-                  {t('lost')} {fmt(hold.loss_quota)}
+                  {t('lost')} {money(hold.loss_quota)}
                 </span>
                 {hold.force_listed ? (
                   <Badge variant='secondary'>{t('Kept listed by admin')}</Badge>
@@ -198,6 +212,50 @@ export function ModelProfit() {
 
       {data && (
         <>
+          {/*
+            合计先说话：默认窗口内收了多少钱、付出去多少钱、净多少。单看
+            某个模型的数字很容易误判，先看这三行就知道整体有没有问题。
+          */}
+          <section className='border-border grid grid-cols-1 gap-4 rounded border p-4 sm:grid-cols-3'>
+            <div>
+              <p className='text-muted-foreground text-[10.5px] tracking-[0.12em] uppercase'>
+                {t('Revenue')}
+              </p>
+              <p className='mt-1 font-mono text-lg font-medium tabular-nums'>
+                {money(data.revenue_total)}
+              </p>
+            </div>
+            <div className='border-border border-l pl-4'>
+              <p className='text-muted-foreground text-[10.5px] tracking-[0.12em] uppercase'>
+                {t('Cost')}
+              </p>
+              <p className='mt-1 font-mono text-lg font-medium tabular-nums'>
+                {money(data.cost_total)}
+              </p>
+              {data.official_cost_models > 0 && (
+                <p className='text-muted-foreground/70 mt-0.5 text-[11px]'>
+                  {t('{{n}} models priced from the official list', {
+                    n: data.official_cost_models,
+                  })}
+                </p>
+              )}
+            </div>
+            <div className='border-border border-l pl-4'>
+              <p className='text-muted-foreground text-[10.5px] tracking-[0.12em] uppercase'>
+                {t('Margin')}
+              </p>
+              <p
+                className={
+                  data.margin_total < 0
+                    ? 'text-destructive mt-1 font-mono text-lg font-medium tabular-nums'
+                    : 'mt-1 font-mono text-lg font-medium tabular-nums'
+                }
+              >
+                {money(data.margin_total)}
+              </p>
+            </div>
+          </section>
+
           <section className='border-border grid grid-cols-2 gap-4 rounded border p-4 sm:grid-cols-3'>
             <div>
               <p className='text-muted-foreground text-[10.5px] tracking-[0.12em] uppercase'>
@@ -252,9 +310,9 @@ export function ModelProfit() {
                   <tr key={row.model} className='border-border/60 border-t'>
                     <td className='px-3 py-2 font-mono text-[12.5px]'>{row.model}</td>
                     <td className='px-3 py-2 text-right tabular-nums'>{row.requests}</td>
-                    <td className='px-3 py-2 text-right tabular-nums'>{fmt(row.revenue)}</td>
+                    <td className='px-3 py-2 text-right tabular-nums'>{money(row.revenue)}</td>
                     <td className='px-3 py-2 text-right tabular-nums'>
-                      {row.has_cost ? fmt(row.cost) : '—'}
+                      {row.has_cost ? money(row.cost) : '—'}
                     </td>
                     <td
                       className={
@@ -270,7 +328,7 @@ export function ModelProfit() {
                           ) : (
                             <ArrowDownRight className='size-3' aria-hidden='true' />
                           )}
-                          {fmt(row.margin)}
+                          {money(row.margin)}
                         </span>
                       ) : (
                         '—'
@@ -291,6 +349,17 @@ export function ModelProfit() {
                       {row.verdict === 'unknown' && (
                         <span className='text-muted-foreground text-[11px]'>
                           {t('No cost set')}
+                        </span>
+                      )}
+                      {/*
+                        成本口径必须标出来：官方目录价不是你的成交价，用它算出
+                        来的「亏损」不能当成事实，也不能拿它去自动下架模型。
+                      */}
+                      {row.has_cost && (
+                        <span className='text-muted-foreground/70 mt-0.5 block text-[10.5px]'>
+                          {row.cost_source === 'official'
+                            ? t('official list price')
+                            : t('your configured cost')}
                         </span>
                       )}
                     </td>
@@ -326,7 +395,7 @@ export function ModelProfit() {
             <p className='text-muted-foreground text-[12.5px]'>
               <span className='text-foreground font-mono'>{confirmForce.model}</span>
               {' · '}
-              {t('lost')} {fmt(confirmForce.loss_quota)}
+              {t('lost')} {money(confirmForce.loss_quota)}
             </p>
           )}
           <DialogFooter>

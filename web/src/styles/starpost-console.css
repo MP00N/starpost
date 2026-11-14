@@ -39,28 +39,15 @@
   --radius: 0.125rem;
 }
 
-[data-theme-preset='starpost'] [data-slot='card'],
-[data-theme-preset='starpost'] [data-slot='dialog'],
-[data-theme-preset='starpost'] [data-slot='popover'],
-[data-theme-preset='starpost'] [data-slot='select-trigger'],
-[data-theme-preset='starpost'] [data-slot='input'],
-[data-theme-preset='starpost'] [data-slot='textarea'],
-[data-theme-preset='starpost'] [data-slot='button'],
-[data-theme-preset='starpost'] [data-slot='badge'],
-[data-theme-preset='starpost'] [data-slot='dropdown-menu'],
-[data-theme-preset='starpost'] [data-slot='sheet'],
-[data-theme-preset='starpost'] [data-slot='tabs-list'],
-[data-theme-preset='starpost'] [data-slot='tabs-trigger'],
-[data-theme-preset='starpost'] [data-slot='command'],
-[data-theme-preset='starpost'] [data-slot='alert'],
-[data-theme-preset='starpost'] [data-slot='tooltip'],
-[data-theme-preset='starpost'] [data-slot='skeleton'],
-[data-theme-preset='starpost'] .rounded-md,
-[data-theme-preset='starpost'] .rounded-lg,
-[data-theme-preset='starpost'] .rounded-xl,
-[data-theme-preset='starpost'] .rounded-2xl {
-  border-radius: 2px;
-}
+/* 圆角方硬 —— 现在由 token 层统一负责。
+ *
+ * 这里原本枚举 `.rounded-md/.rounded-lg/.rounded-xl/.rounded-2xl` 逐条压成 2px，
+ * 那是个永远追不上的做法：.rounded-3xl / .rounded-4xl 漏掉，新写的组件还从
+ * 圆角重新开始，而且同一条选择器优先级输给 Tailwind 生成的 `calc(var(--radius)*1.8)`。
+ *
+ * 真正生效的是 theme-presets.css 里 `[data-theme-preset='starpost']` 下的
+ * `--radius*: 0px` 阶梯——改一处，全站所有 `rounded-*` 同时变方，新组件自动继承。
+ * 下面只保留 `rounded-full` 的还原，因为真正的圆（头像、状态点、开关）不该被压方。 */
 
 /* 圆形元素不能被方角规则误伤。
  * .rounded-full 是显式圆角，没争议；开关另外要单独兜底——它的轨道容器用的是

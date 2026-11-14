@@ -284,6 +284,12 @@ func validateOptionValue(key string, value string) error {
 	if key == operation_setting.SystemTaskRetentionDaysOptionKey {
 		return operation_setting.ValidateSystemTaskRetentionDays(value)
 	}
+	if strings.HasPrefix(key, "pricing_sync_setting.") {
+		return operation_setting.ValidatePricingSyncOption(key, value)
+	}
+	if strings.HasPrefix(key, "icon_sync_setting.") {
+		return operation_setting.ValidateIconSyncOption(key, value)
+	}
 	if key == "MaxTokenAutoGroups" {
 		return setting.ValidateMaxTokenAutoGroups(value)
 	}

@@ -1,0 +1,159 @@
+/**
+ * 字 — the Chinese setting layer.
+ *
+ * Everything before this file was pretending. It took the stock Western admin
+ * components and squared their corners, which reads as "a dashboard with sharp
+ * edges", not as Chinese. The difference is not colour or ornament — it is
+ * **how the type is set**, and that has a published specification:
+ *
+ *   W3C《中文排版需求》 Requirements for Chinese Text Layout (clreq)
+ *   https://www.w3.org/TR/clreq/
+ *
+ * The rules below are lifted from that document, not invented. Where a number
+ * is arbitrary I say so; where it comes from the spec I name the section.
+ *
+ * ── The four things that actually change the reading ──────────────────────
+ *
+ * 1. 字体 (clreq §3.1.1) 中文排版的四种基本字体：宋、楷、黑、仿宋。
+ *    宋体是正文与标题的默认；楷体用于批注、引文、需要"手写感"的地方。
+ *    A Chinese console that sets *everything* in one sans face is the single
+ *    biggest reason it reads as a Western product translated into Chinese.
+ *    Here: 黑体 for UI chrome and figures (it is legible at 12px where 宋体's
+ *    hairlines dissolve), 宋体 for every heading, 楷体 for annotations/quotes.
+ *
+ * 2. 字距 (clreq §6.3 on inter-character spacing) Han text takes *no* extra
+ *    letter-spacing in body copy — it is already a monospaced grid. Adding
+ *    tracking to Han characters is a Latin habit and makes the text look
+ *    loose. But short labels (2-4 characters) are conventionally spaced out,
+ *    and that is the one place 片假名-style tracking is correct.
+ *
+ * 3. 行高 (clreq §6.2.4 grid alignment) Han glyphs fill their em box, so the
+ *    comfortable line height is *smaller* than for Latin: 1.5-1.75 vs 1.6-1.9.
+ *    Setting Han at Latin line-heights makes paragraphs feel airy and unruled.
+ *
+ * 4. 数字 (clreq §5.7) Western figures inside Han text should be proportional
+ *    when inline, tabular when in columns. A ledger is a column context.
+ */
+
+/* ── 1 · 三类字：黑、宋、楷 ────────────────────────────────────────────────
+ * 黑体 = UI chrome, data, anything ≤13px. 宋体 = headings and prose.
+ * 楷体 = annotations, quotes, and the seal-like accents.
+ *
+ * The 楷 stack is deliberately short and honest: most systems do not have a
+ * good 楷, and falling back to a *fake* italicised serif is worse than falling
+ * back to 宋. So 楷 is used only where a fallback still reads correctly. */
+[data-theme-preset='starpost'] {
+  --sp-font-hei:
+    'Noto Sans CJK SC', 'Noto Sans CJK TC', 'Source Han Sans SC',
+    'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑',
+    system-ui, sans-serif;
+  --sp-font-song: var(--font-serif);
+  --sp-font-kai:
+    'Kaiti SC', 'STKaiti', 'KaiTi', '楷体', 'Kaiti TC', 'Noto Serif CJK SC',
+    var(--font-serif);
+}
+
+/* 正文与所有 UI 文字：黑体。宋体在 12px 上笔画会糊成灰块，读数会骗人。 */
+[data-theme-preset='starpost'] body,
+[data-theme-preset='starpost'] [data-slot='sidebar-inset'] {
+  font-family: var(--sp-font-hei);
+}
+
+/* 标题：宋体，字重拉到 600（clreq §3.1.1.1：宋体作标题时加重字重以区别正文） */
+[data-theme-preset='starpost'] h1,
+[data-theme-preset='starpost'] h2,
+[data-theme-preset='starpost'] h3,
+[data-theme-preset='starpost'] [data-slot='page-title'],
+[data-theme-preset='starpost'] [data-slot='card-title'],
+[data-theme-preset='starpost'] [data-slot='dialog-title'],
+[data-theme-preset='starpost'] [data-slot='sheet-title'],
+[data-theme-preset='starpost'] [data-slot='settings-section'] > div > h3 {
+  font-family: var(--sp-font-song);
+  font-weight: 600;
+  /* 宋体本身没有负字距需求，之前 -0.015em 是我按西文习惯加的，去掉 */
+  letter-spacing: 0;
+  /* 宋体笔画细，行高要比黑体松一点才不挤 */
+  line-height: 1.35;
+}
+
+/* 正文大段文字（说明、描述、帮助）：也用宋体，行高按中文收紧 */
+[data-theme-preset='starpost'] [data-slot='card-description'],
+[data-theme-preset='starpost'] [data-slot='form-description'],
+[data-theme-preset='starpost'] [data-slot='dialog-description'],
+[data-theme-preset='starpost'] [data-slot='sheet-description'] {
+  font-family: var(--sp-font-song);
+  letter-spacing: 0;
+  line-height: 1.65;
+}
+
+/* 数据、代码、金额：等宽 + tabular，账本必须对齐 (clreq §5.7) */
+[data-theme-preset='starpost'] [data-slot='table-cell'],
+[data-theme-preset='starpost'] [data-slot='data-table-card'] {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── 2 · 夹注：短标签宽字距，正文绝不加字距 ───────────────────────────────
+ * clreq 里汉字是等宽网格，正文再加 tracking 就散了。但 2-4 字的标签
+ * 传统上是「疏排」的——这是唯一该加字距的地方。之前的版本把这个规则
+ * 用到了所有地方，包括正文，所以整站看起来松散。 */
+[data-theme-preset='starpost'] [data-slot='data-table-card'] dt,
+[data-theme-preset='starpost'] [data-slot='table-head'],
+[data-theme-preset='starpost'] [data-sidebar='group-label'],
+[data-theme-preset='starpost'] [data-slot='log-stat'],
+[data-theme-preset='starpost'] [data-slot='log-detail-row'] > span:first-child {
+  font-family: var(--sp-font-hei);
+  letter-spacing: 0.08em;
+}
+
+/* 正文与表格内容：明确归零，抵消任何继承来的字距 */
+[data-theme-preset='starpost'] [data-slot='table-cell'],
+[data-theme-preset='starpost'] [data-slot='form-item'] label,
+[data-theme-preset='starpost'] [data-slot='form-label'] {
+  letter-spacing: 0;
+}
+
+/* ── 3 · 行高：中文要更紧 ─────────────────────────────────────────────────
+ * Han glyphs fill the em box; Latin ones sit on a baseline with空气 above and
+ * below. So the same 1.5 that looks tight in English looks loose in Chinese. */
+[data-theme-preset='starpost'] [data-slot='table-cell'] {
+  line-height: 1.45;
+}
+
+[data-theme-preset='starpost'] [data-slot='table-head'] {
+  line-height: 1.3;
+  font-size: 11px;
+  font-weight: 500;
+  /* 表头是全大写西文的习惯，中文没有大小写，改用字距表达层级 */
+  text-transform: none;
+}
+
+/* ── 4 · 标点：中文标点占一个全角格 ───────────────────────────────────────
+ * clreq §6.1.1 行首行尾禁则: 标点不能出现在行首（除开引号、括号）。
+ * 浏览器支持有限，但 `line-break: strict` 至少阻止「，。」被推到行首，
+ * 这是中文排版里最刺眼的一种错误。 */
+[data-theme-preset='starpost'] p,
+[data-theme-preset='starpost'] [data-slot='card-description'],
+[data-theme-preset='starpost'] [data-slot='form-description'] {
+  line-break: strict;
+  overflow-wrap: break-word;
+}
+
+/* 中文段落首行不缩进（这是杂志排版，不是书籍正文），但要允许标点悬挂 */
+[data-theme-preset='starpost'] {
+  hanging-punctuation: allow-end;
+}
+
+/* ── 5 · 印章与朱砂：只用在有含义的地方 ───────────────────────────────────
+ * 之前把朱砂当装饰色用（左侧竖线、标题前的短线），结果「到处都是红」，
+ * 反而没有了分量。朱砂在中国印刷里是钤印——盖一次是一个断言。 */
+[data-theme-preset='starpost'] [data-slot='page-title']::before {
+  font-family: var(--sp-font-song);
+}
+
+/* ── 6 · 数字与单位分离 ───────────────────────────────────────────────────
+ * 中文习惯「29,452,369 个」，数字与量词之间留一个细空。表格里靠列宽
+ * 自然分开就够了，卡片里需要显式处理。 */
+[data-theme-preset='starpost'] [data-slot='data-table-card'] dd {
+  font-family: var(--sp-font-hei);
+  font-variant-numeric: tabular-nums;
+}

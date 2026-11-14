@@ -63,10 +63,23 @@ function getPinnedColumnClassName(
       ? 'shadow-[8px_0_10px_-10px_hsl(var(--foreground))]'
       : 'shadow-[-8px_0_10px_-10px_hsl(var(--foreground))]'
 
+  // On a phone the pinned columns are the only ones that always survive, so
+  // they must not eat the whole row. 模型 pins both `model_name` (left) and
+  // `actions` (right); at 360px those two alone filled the viewport and the
+  // middle columns collapsed to zero width — which looked like content being
+  // sliced off rather than a table that scrolls.
+  //
+  // Below `sm` the side shadow is dropped (on paper it is a rule, not a
+  // shadow) and the pinned cell is capped so the scrollable middle keeps a
+  // usable width.
+  const mobilePinClassName =
+    'max-sm:max-w-[62vw] max-sm:overflow-hidden max-sm:shadow-none'
+
   return cn(
     'sticky whitespace-nowrap',
     pinnedColumn.side === 'left' ? 'left-0' : 'right-0',
     edgeClassName,
+    mobilePinClassName,
     kind === 'header'
       ? '[background-color:var(--table-header-bg,var(--table-header))] group-hover:[background-color:var(--table-header-hover)] z-30'
       : 'bg-background z-10 group-hover:[background-color:color-mix(in_oklch,var(--muted)_50%,var(--background))] group-data-[state=selected]:bg-muted',

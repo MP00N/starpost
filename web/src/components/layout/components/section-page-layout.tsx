@@ -112,11 +112,21 @@ export function SectionPageLayout(props: SectionPageLayoutProps) {
         </div>
 
         <div
+          data-slot='page-content'
           className={
             props.fixedContent
               ? 'min-h-0 flex-1 overflow-hidden px-3 pt-1 pb-3 sm:px-4 sm:pt-1.5 sm:pb-4'
               : 'min-h-0 flex-1 overflow-auto px-3 pt-1 pb-3 sm:px-4 sm:pt-1.5 sm:pb-4'
           }
+          // `overflow-hidden` keeps a fixed-height page (channels, models,
+          // logs) from growing the whole document, but it also *clips* any
+          // child wider than the viewport with no way to reach it — on a 360px
+          // phone the data tables showed columns sliced off at the right edge.
+          //
+          // The repair lives in starpost-narrow.css, scoped to `max-width:
+          // 767px`, rather than as an inline style here: an inline
+          // `overflow-x: auto` would apply at every width and turn the desktop
+          // layout into a horizontally scrolling document.
         >
           {content}
         </div>

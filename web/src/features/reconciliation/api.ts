@@ -27,8 +27,12 @@ export type AuditModel = {
   cache_write: number
   quota: number
   expected: number
+  official: number
+  has_official: boolean
   cache_hit_rate: number
   drift: number
+  markup: number
+  priced_by: '' | 'expr' | 'ratio' | 'price' | 'none'
   free: boolean
 }
 
@@ -56,11 +60,14 @@ export type AuditResult = {
   rows: number
   quota_total: number
   expected_total: number
+  official_total: number
   cache_saved_quota: number
   quota_per_unit: number
   models: AuditModel[]
   anomalies: AuditAnomaly[]
   free_model_rows: number
+  unverifiable_rows: number
+  official_models: number
 }
 
 export async function getReconciliationAudit(

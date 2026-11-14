@@ -26,10 +26,20 @@ For commercial licensing, please contact support@quantumnous.com
    * Latin glyphs, so the stack walks through CJK serifs (Noto / Source Han
    * / Songti / SimSun) before the generic `serif` fallback. Without these
    * explicit CJK fonts the browser's generic-serif pick on Windows is
-   * non-deterministic at small sizes and often appears sans-like. */
+   * non-deterministic at small sizes and often appears sans-like.
+   *
+   * `Noto Serif CJK SC` is the name the *installed* family actually reports
+   * (verified against the PostScript name table in /system/fonts on Android,
+   * and it is what Linux distros ship). It is a different name from the
+   * webfont `Noto Serif SC`, so both have to be listed — a stack that only
+   * says `Noto Serif SC` silently falls through to the generic `serif`,
+   * which on most systems resolves to Noto Serif *Latin* and leaves every
+   * Han character in a sans fallback. That is why headings looked unstyled. */
   --font-serif:
     'Lora Variable', 'Lora', 'Source Serif Pro', 'Source Serif 4',
-    'Noto Serif SC', 'Noto Serif TC', 'Noto Serif JP', 'Noto Serif KR',
+    'StarPost Song', 'Noto Serif SC', 'Noto Serif TC', 'Noto Serif JP',
+    'Noto Serif KR', 'Noto Serif CJK SC', 'Noto Serif CJK TC',
+    'Noto Serif CJK JP', 'Noto Serif CJK KR',
     'Source Han Serif SC', 'Source Han Serif TC', 'Source Han Serif',
     'Songti SC', 'STSong', 'STSongti-SC-Regular', 'PingFang SC', 'SimSun',
     'NSimSun', '宋体', 'FangSong', '仿宋', 'KaiTi', '楷体', Georgia,

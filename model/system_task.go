@@ -26,6 +26,13 @@ const (
 	SystemTaskTypeAsyncTaskPoll  = "async_task_poll"
 	SystemTaskTypeChannelBalance = "channel_balance"
 	SystemTaskTypeCleanup        = "system_task_cleanup"
+	// SystemTaskTypePricingSync adopts the official price list. It is the only
+	// scheduled task that rewrites billing data, so its payload and result are
+	// kept for review like any other task row.
+	SystemTaskTypePricingSync = "pricing_sync"
+	// SystemTaskTypeIconSync fills in model and vendor brand marks from the
+	// official metadata feed.
+	SystemTaskTypeIconSync = "icon_sync"
 
 	systemTaskCleanupBatchSize = 500
 )

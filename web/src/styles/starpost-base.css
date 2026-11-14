@@ -1,0 +1,81 @@
+/**
+ * 驿 — the two whole-console levers that no per-page rule can reach.
+ *
+ * ## Why this file exists
+ *
+ * Earlier passes styled the shell (sidebar, paper) and the parts (dialogs,
+ * badges) and then went looking for pages to fix, one selector at a time. That
+ * cannot converge: 29 feature directories × dozens of markup variations means
+ * every rule covers one screen and misses the next, and a component added
+ * tomorrow starts unstyled again.
+ *
+ * Everything else is already handled elsewhere and deliberately not repeated:
+ *
+ *   字    starpost-type.css   — 黑/宋/楷 assignment, cited to W3C clreq
+ *   窄屏  starpost-narrow.css — the 360px clipping and crowding repairs
+ *   页    starpost-pages.css  — table-as-册页, channel-as-签, log-as-簿册
+ *   壳    starpost-console.css / -components.css / -paper.css
+ *
+ * What is left are the two things that are *cross-cutting by nature*: corner
+ * geometry and elevation. Both are properties that Tailwind bakes into
+ * hundreds of utility classes, so neither can be expressed as "style this
+ * component".
+ */
+
+/* ── 1 · 角 — the corner scale is a token, not a selector ────────────────
+ * `--radius*` is already 0 under this preset (see theme-presets.css), which
+ * covers every `rounded-lg` / `rounded-xl` / `rounded-2xl` the compiler
+ * generates. The rules below catch the two cases a token cannot:
+ *
+ *   a) arbitrary values — `rounded-[10px]`, `rounded-[2px]` — which bypass
+ *      the scale entirely
+ *   b) `rounded-t-*` / `rounded-b-*` half-corners used on tabs and split
+ *      buttons
+ *
+ * `rounded-full` is excluded on purpose: the console keeps genuine circles —
+ * avatars, status dots, switch tracks, radio buttons. Flattening those makes
+ * the interface harder to read, not more Chinese. */
+[data-theme-preset='starpost'] [class*='rounded-['] {
+  border-radius: 0;
+}
+
+[data-theme-preset='starpost'] :is(
+    [class*='rounded-t-'],
+    [class*='rounded-b-'],
+    [class*='rounded-l-'],
+    [class*='rounded-r-']
+  ):not([class*='rounded-full']):not([class*='rounded-[']) {
+  border-radius: 0;
+}
+
+/* ── 2 · 影 — nothing floats on paper ─────────────────────────────────────
+ * A drop shadow says "this element is above the page". On paper nothing is.
+ * Rather than hunt every `shadow-*` utility, neutralise them at once.
+ *
+ * Two exceptions, and they are principled rather than cosmetic: a *menu* or
+ * *dialog* opens above a scrim and must separate from whatever is behind it.
+ * Those get a hairline frame plus a very soft shadow (defined in
+ * starpost-components.css); stripping it entirely makes a dropdown over a
+ * dense table harder to read than the stock design. */
+[data-theme-preset='starpost'] [class*='shadow-']:not(
+    [data-slot='dialog-content']
+  ):not([data-slot='alert-dialog-content']):not([data-slot='popover-content']):not(
+    [data-slot='dropdown-menu-content']
+  ):not([data-slot='select-content']):not([data-slot='sheet-content']):not(
+    [data-slot='context-menu-content']
+  ):not([data-slot='hover-card-content']) {
+  box-shadow: none;
+}
+
+/* ── 3 · 选中与焦点 — the two global states worth painting ───────────────
+ * Cheap, and they are the only places the palette touches every screen. */
+[data-theme-preset='starpost'] ::selection {
+  background: color-mix(in oklch, var(--sp-seal-ink) 18%, transparent);
+  color: var(--foreground);
+}
+
+/* 焦点环：原生是蓝色光晕，和纸墨打架。1px 朱砂外描边像盖了一道印。 */
+[data-theme-preset='starpost'] :focus-visible {
+  outline: 1px solid var(--sp-seal-ink);
+  outline-offset: 2px;
+}

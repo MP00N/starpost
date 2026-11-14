@@ -29,7 +29,10 @@ export function DetailRow(props: {
   muted?: boolean
 }) {
   return (
-    <div className='grid min-w-0 grid-cols-[5.25rem_minmax(0,1fr)] gap-2 text-sm sm:grid-cols-[7rem_minmax(0,1fr)] sm:gap-3'>
+    <div
+      data-slot='log-detail-row'
+      className='grid min-w-0 grid-cols-[5.25rem_minmax(0,1fr)] gap-2 text-sm sm:grid-cols-[7rem_minmax(0,1fr)] sm:gap-3'
+    >
       <span className='text-muted-foreground min-w-0 text-xs'>
         {props.label}
       </span>
@@ -56,7 +59,7 @@ export function DetailSection(props: {
   const isDanger = props.variant === 'danger'
   const iconTone = isDanger ? 'destructive' : props.iconTone
   return (
-    <div className='min-w-0 space-y-1.5'>
+    <div data-slot='log-detail-section' className='min-w-0 space-y-1.5'>
       <Label
         className={cn(
           'flex items-center gap-1.5 text-xs font-semibold',
@@ -71,6 +74,7 @@ export function DetailSection(props: {
         {props.label}
       </Label>
       <div
+        data-slot='log-detail-box'
         className={cn(
           'min-w-0 space-y-1 overflow-hidden rounded-md border p-2.5 max-sm:p-2',
           isDanger

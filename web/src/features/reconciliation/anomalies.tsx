@@ -24,6 +24,12 @@ For commercial licensing, please contact support@quantumnous.com
  * even though nothing was fixed. This list is stored in `billing_anomalies`,
  * which is deliberately outside the usage-log retention policy.
  *
+ * The record carries a machine `kind` and a written `detail`. The card shows the
+ * written one as the headline: a row that reads `billing_drift` tells whoever
+ * opens this page nothing about what happened or what to do, which is exactly
+ * how it was reported back. The machine token stays, small and secondary, so the
+ * row can still be matched against logs and grouped.
+ *
  * Disposal is two-step, because "delete" should never be one click:
  *
  *   open      → 点「已解决」→ 弹窗确认（可填写处置说明）→ resolved
@@ -50,6 +56,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { api } from '@/lib/api'
+import { formatQuota } from '@/lib/format'
 
 type Anomaly = {
   id: number
@@ -70,6 +77,22 @@ type Anomaly = {
   created_at: number
   resolved_at: number
   resolution: string
+}
+
+/**
+ * What each machine kind means, in words. The server already writes a full
+ * sentence into `detail`; this is the fallback for rows recorded by an older
+ * build that stored only the token, and it is what the badge is titled with so
+ * hovering explains the category without opening the record.
+ */
+const KIND_LABELS: Record<string, string> = {
+  quota_zero: '有 token 却没收钱',
+  billing_drift: '实收与规则不符',
+  cache_exceeds_prompt: '缓存数异常',
+  negative_tokens: 'token 数为负',
+  broken_other: '计费数据损坏',
+  no_ratio: '缺计费规则',
+  loss_model: '模型在亏损',
 }
 
 function formatTime(unix: number): string {
@@ -117,6 +140,12 @@ export function AnomalyLedger() {
       queryClient.invalidateQueries({ queryKey: ['billing-anomalies'] })
     },
   })
+
+  /** The written explanation, or a local label for records that predate it. */
+  const explain = (item: Anomaly) =>
+    item.detail?.trim() ||
+    KIND_LABELS[item.kind] ||
+    t('No explanation was recorded for this one.')
 
   return (
     <section className='mt-8'>
@@ -180,8 +209,15 @@ export function AnomalyLedger() {
               key={item.id}
               className='border-border/60 flex flex-wrap items-start gap-x-3 gap-y-1 border-b px-1 py-2.5 text-[12.5px]'
             >
-              <Badge variant='secondary'>{item.kind}</Badge>
+              <Badge variant='secondary' title={item.kind}>
+                {KIND_LABELS[item.kind] ?? item.kind}
+              </Badge>
               <span className='font-mono'>{item.model_name}</span>
+
+              {/* 说清楚发生了什么，这才是这一行对管理员有用的部分 */}
+              <span className='text-foreground/85 min-w-0 basis-full sm:basis-auto'>
+                {explain(item)}
+              </span>
 
               <span className='text-muted-foreground flex items-center gap-1'>
                 <Clock className='size-3' aria-hidden='true' />
@@ -197,9 +233,10 @@ export function AnomalyLedger() {
                   {item.username || `#${item.user_id}`}
                 </Link>
                 {item.token_name && <span>{item.token_name}</span>}
+                {/* 金额按货币显示；额度本身不是钱 */}
                 {item.expected > 0 && (
                   <span className='font-mono tabular-nums'>
-                    {Math.round(item.expected)} → {Math.round(item.actual)}
+                    {formatQuota(item.expected)} → {formatQuota(item.actual)}
                   </span>
                 )}
               </span>
@@ -247,9 +284,11 @@ export function AnomalyLedger() {
 
           {pending && (
             <div className='text-muted-foreground space-y-1 text-[12px]'>
-              <p>
-                {pending.kind} · <span className='font-mono'>{pending.model_name}</span>
+              <p className='text-foreground'>
+                {KIND_LABELS[pending.kind] ?? pending.kind} ·{' '}
+                <span className='font-mono'>{pending.model_name}</span>
               </p>
+              <p className='text-foreground/85'>{explain(pending)}</p>
               <p>{formatTime(pending.occurred_at)}</p>
               <p>
                 {pending.username}

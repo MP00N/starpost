@@ -20,6 +20,10 @@ import { api } from '@/lib/api'
 
 import type {
   ConfirmPaymentComplianceResponse,
+  IconSyncPreviewResponse,
+  IconSyncStatusResponse,
+  PricingSyncPreviewResponse,
+  PricingSyncStatusResponse,
   FetchUpstreamRatiosRequest,
   LogCleanupTask,
   SystemOptionsResponse,
@@ -122,6 +126,57 @@ export async function fetchUpstreamRatios(request: FetchUpstreamRatiosRequest) {
   const res = await api.post<UpstreamRatiosResponse>(
     '/api/ratio_sync/fetch',
     request
+  )
+  return res.data
+}
+
+// ---------------------------------------------------------------------------
+// Official price synchronization
+// ---------------------------------------------------------------------------
+
+export async function getPricingSyncStatus() {
+  const res = await api.get<PricingSyncStatusResponse>(
+    '/api/ratio_sync/official/status'
+  )
+  return res.data
+}
+
+// `preview` is a dry run: the backend fetches the official list and reports the
+// blast radius without writing any price. It is the only safe way to show the
+// administrator what a run would change before they enable the schedule.
+export async function previewPricingSync() {
+  const res = await api.post<PricingSyncPreviewResponse>(
+    '/api/ratio_sync/official/preview'
+  )
+  return res.data
+}
+
+export async function runPricingSync() {
+  const res = await api.post<SystemTaskResponse<unknown>>(
+    '/api/ratio_sync/official/run'
+  )
+  return res.data
+}
+
+export async function getIconSyncStatus() {
+  const res = await api.get<IconSyncStatusResponse>(
+    '/api/ratio_sync/icons/status'
+  )
+  return res.data
+}
+
+// `preview` is a dry run: it reports how many records would gain an icon and
+// writes nothing.
+export async function previewIconSync() {
+  const res = await api.post<IconSyncPreviewResponse>(
+    '/api/ratio_sync/icons/preview'
+  )
+  return res.data
+}
+
+export async function runIconSync() {
+  const res = await api.post<SystemTaskResponse<unknown>>(
+    '/api/ratio_sync/icons/run'
   )
   return res.data
 }

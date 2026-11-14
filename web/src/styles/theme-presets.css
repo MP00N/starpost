@@ -663,6 +663,14 @@ For commercial licensing, please contact support@quantumnous.com
     'tnum' 1;
 }
 
+/* ── 驿 — 字的分配见 starpost-type.css ────────────────────────────────────
+ * 这里只声明字体「资源」（--font-serif 里自托管的 StarPost Song），不决定
+ * 谁用宋体。正文/数据用黑体、标题用宋体的分工，连同依据（W3C clreq §3.1.1
+ * 宋体作标题时加重字重；宋体细画在 12px 数据上会糊）都在 starpost-type.css。
+ *
+ * 之前这里把 --font-body 直接钉成宋体，会和 starpost-type.css 抢同一个属性，
+ * 谁后加载谁赢——那种冲突比不做还糟。--font-body 交还给用户的字体偏好。 */
+
 /* Heading tuning — applies to <h*> tags and the shadcn title slots so
  * card/sheet/dialog titles read with the same authoritative voice as
  * page headers. */
@@ -779,6 +787,30 @@ For commercial licensing, please contact support@quantumnous.com
 
   /* MD3 capsule end of the radius scale — buttons and chips become pills. */
   --radius: 1.25rem;
+}
+
+/* 驿 — the corner scale is the single lever that reaches every page.
+ *
+ * The console hard-codes `rounded-lg` / `rounded-xl` / `rounded-2xl` in
+ * hundreds of feature components. Enumerating those selectors one by one is
+ * why the earlier attempts never covered the whole site: a rule matching
+ * `.rounded-2xl` at 2px loses to the generated utility on specificity, and
+ * every new component added later starts round again.
+ *
+ * Overriding the *token* fixes all of them at once, and anything written in
+ * future inherits it for free. Every radius below is 0 because 纸 and 木刻 have
+ * square corners; `rounded-full` is a separate token Tailwind emits literally
+ * (`9999px`), so genuine circles — avatars, dots, switches — are unaffected.
+ */
+[data-theme-preset='starpost'] {
+  --radius: 0px;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+  --radius-3xl: 0px;
+  --radius-4xl: 0px;
 }
 
 .dark [data-theme-preset='starpost'] {
