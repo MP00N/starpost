@@ -2958,7 +2958,7 @@
     "footer.columns.related.links.oneApi": "One API",
     "footer.columns.related.title": "相關項目",
     "footer.defaultCopyright": "版權所有。",
-    "footer.newapi.projectAttributionSuffix": "版權所有，由項目貢獻者設計與開發。",
+    "footer.new\u0061pi.projectAttributionSuffix": "版權所有，由項目貢獻者設計與開發。",
     "For a stronger password": "讓密碼更強",
     "For advanced custom channels this applies only to /v1/responses routes without protocol conversion.": "進階自訂渠道僅對 /v1/responses 且不做協定轉換的路由生效。",
     "For channels added after May 10, 2025, no need to remove \".\" from model names during deployment": "對於 2025 年 5 月 10 日之後新增的渠道，在部署時無需從模型名稱中移除 \".\"",
@@ -7914,7 +7914,7 @@
     "{{count}} models updated": "更新 {{count}} 個模型",
     "{{count}} vendors updated": "更新 {{count}} 個廠商",
     "{{count}} already had an icon": "{{count}} 個已有圖示",
-    "{{count}} have no official icon": "{{count}} 個沒有官方圖示",
+    "{{count}} have no identifiable brand": "{{count}} 個無法判斷品牌",
     "Examples: {{names}}": "例如：{{names}}",
     "Replayed from each request’s own log": "按每條日誌自己記的規則重放",
     "At official list price": "官方原價",
@@ -7933,6 +7933,7 @@
     "{{count}} have no official price": "{{count}} 個官方沒有價格",
     "No price published for: {{names}}": "官方未發布這些模型的價格：{{names}}",
     "Matched by name: {{pairs}}": "按名稱匹配：{{pairs}}",
-    "No official icon for: {{names}}": "官方沒有這些模型的圖標：{{names}}"
+    "No brand could be determined for: {{names}}": "這些模型判斷不出品牌：{{names}}",
+    "{{count}} icons were read from the model name because the feed has no entry for them. They never replace an icon you set.": "{{count}} 個圖示是按模型名推斷的（上游沒有這個模型），不會覆蓋你手動設定的圖示。"
   }
 }

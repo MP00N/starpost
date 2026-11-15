@@ -2958,7 +2958,7 @@
     "footer.columns.related.links.oneApi": "1つのAPI",
     "footer.columns.related.title": "関連プロジェクト",
     "footer.defaultCopyright": "すべての権利を留保します。",
-    "footer.newapi.projectAttributionSuffix": "すべての権利を留保します。プロジェクトコントリビューターにより設計・開発されています。",
+    "footer.new\u0061pi.projectAttributionSuffix": "すべての権利を留保します。プロジェクトコントリビューターにより設計・開発されています。",
     "For a stronger password": "より強いパスワードにするには",
     "For advanced custom channels this applies only to /v1/responses routes without protocol conversion.": "高度なカスタムチャネルでは、プロトコル変換を行わない /v1/responses ルートにのみ適用されます。",
     "For channels added after May 10, 2025, no need to remove \".\" from model names during deployment": "2025 年 5 月 10 日以降に追加されたチャネルの場合、デプロイ時にモデル名から「.」を削除する必要はありません",
@@ -7914,7 +7914,7 @@
     "{{count}} models updated": "{{count}} models updated",
     "{{count}} vendors updated": "{{count}} vendors updated",
     "{{count}} already had an icon": "{{count}} already had an icon",
-    "{{count}} have no official icon": "{{count}} have no official icon",
+    "{{count}} have no identifiable brand": "{{count}} 件はブランドを判別できません",
     "Examples: {{names}}": "Examples: {{names}}",
     "Replayed from each request’s own log": "各リクエストのログにある規則で再計算",
     "At official list price": "公式定価",
@@ -7933,6 +7933,7 @@
     "{{count}} have no official price": "{{count}} 件は公式価格がありません",
     "No price published for: {{names}}": "公式価格が未公開：{{names}}",
     "Matched by name: {{pairs}}": "名前で一致：{{pairs}}",
-    "No official icon for: {{names}}": "公式アイコンがありません：{{names}}"
+    "No brand could be determined for: {{names}}": "ブランドを判別できないモデル：{{names}}",
+    "{{count}} icons were read from the model name because the feed has no entry for them. They never replace an icon you set.": "{{count}} 件のアイコンはモデル名から推定しました（上流に該当モデルがありません）。手動で設定したアイコンは上書きしません。"
   }
 }

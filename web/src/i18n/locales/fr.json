@@ -2958,7 +2958,7 @@
     "footer.columns.related.links.oneApi": "One API",
     "footer.columns.related.title": "Projets liés",
     "footer.defaultCopyright": "Tous droits réservés.",
-    "footer.newapi.projectAttributionSuffix": "Tous droits réservés. Conçu et développé par les contributeurs du projet.",
+    "footer.new\u0061pi.projectAttributionSuffix": "Tous droits réservés. Conçu et développé par les contributeurs du projet.",
     "For a stronger password": "Pour un mot de passe plus robuste",
     "For advanced custom channels this applies only to /v1/responses routes without protocol conversion.": "Pour les canaux personnalisés avancés, ceci ne s’applique qu’aux routes /v1/responses sans conversion de protocole.",
     "For channels added after May 10, 2025, no need to remove \".\" from model names during deployment": "Pour les canaux ajoutés après le 10 mai 2025, pas besoin de supprimer \".\" des noms de modèles lors du déploiement",
@@ -7914,7 +7914,7 @@
     "{{count}} models updated": "{{count}} models updated",
     "{{count}} vendors updated": "{{count}} vendors updated",
     "{{count}} already had an icon": "{{count}} already had an icon",
-    "{{count}} have no official icon": "{{count}} have no official icon",
+    "{{count}} have no identifiable brand": "{{count}} n’ont pas de marque identifiable",
     "Examples: {{names}}": "Examples: {{names}}",
     "Replayed from each request’s own log": "Recalculé depuis le journal de chaque requête",
     "At official list price": "Au prix catalogue",
@@ -7933,6 +7933,7 @@
     "{{count}} have no official price": "{{count}} n'ont pas de prix officiel",
     "No price published for: {{names}}": "Aucun prix publié pour : {{names}}",
     "Matched by name: {{pairs}}": "Correspondances par nom : {{pairs}}",
-    "No official icon for: {{names}}": "Aucune icône officielle pour : {{names}}"
+    "No brand could be determined for: {{names}}": "Marque indéterminable pour : {{names}}",
+    "{{count}} icons were read from the model name because the feed has no entry for them. They never replace an icon you set.": "{{count}} icônes ont été déduites du nom du modèle, absent du catalogue amont. Elles ne remplacent jamais une icône que vous avez définie."
   }
 }

@@ -31,6 +31,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -98,11 +99,9 @@ var vendorIconAliases = map[string]string{
 // normalization alone is not enough. Both sides are normalized.
 //
 // This table is deliberately near-empty, and that is a finding rather than an
-// omission: a wrong icon is a visible lie about who made the model. Several
-// plausible-looking aliases were rejected after checking the feed —
-// `deepseek-v4.1-flash-1017` normalizes onto `deepseek-v4-1-flash-1017`, but the
-// feed files that entry under **Mistral.Color**, so adopting it would brand a
-// DeepSeek model as Mistral. A letter fallback is better than that.
+// omission: a wrong icon is a visible lie about who made the model. See
+// brandFamilyStems for what happens when normalization finds nothing — the
+// answer is not a hand-maintained alias per model.
 var iconModelAliases = map[string]string{}
 
 // iconModelBlocklist refuses specific normalized feed matches outright, with the
@@ -110,30 +109,184 @@ var iconModelAliases = map[string]string{}
 //
 //	deepseekv41flash1017 → deepseek-v4-1-flash-1017 carries Mistral.Color in the
 //	                       feed. The names collide; the brands do not.
+//
+// A refusal here is not the end of the lookup: the name-inference pass below
+// still runs, so this row gets DeepSeek.Color — the brand its own name states —
+// instead of the Mistral mark the feed would have assigned it.
 var iconModelBlocklist = map[string]string{
 	"deepseekv41flash1017": "deepseek-v4-1-flash-1017",
 }
 
-// resolveIconForModel returns the published icon name for one site model, or ""
-// when the feed has nothing trustworthy for it.
-func resolveIconForModel(modelIcons map[string]string, index map[string]string, modelName string) string {
+// brandFamilyStems maps a spelling that can start a model-name token onto a
+// @lobehub/icons id.
+//
+// ## Why this exists
+//
+// The feed publishes an icon for the models it has *priced*, which is not the
+// same set as the models a site *serves*. `codex-auto-review` is an OpenAI Codex
+// product the feed has never carried; `hy4free` is a Hunyuan variant published
+// only as `hy4`. Exact and normalized lookups both miss them, and the run
+// reported them as "no official icon" — indistinguishable from a model whose
+// brand genuinely does not exist.
+//
+// The brand is written in the name. Reading a token like `codex` or `hy4` is the
+// same inference an administrator makes by eye, and it is what upstream's own
+// vendor mapping does (see defaultVendorRules in model/pricing_default.go).
+//
+// ## What keeps it from lying
+//
+// It runs LAST — after an exact feed row and after a normalized feed match — so
+// it never overrides published data. Stems are brand names that denote exactly
+// one vendor; bare `hy` is deliberately absent because it would match unrelated
+// tokens, while `hy3`/`hy4` are the published Hunyuan names. A token is matched
+// by prefix so `hy4free` and `hy4-preview-f` both land on Hunyuan, and the
+// longest stem wins so `chatglm` is not decided by `glm`.
+var brandFamilyStems = map[string]string{
+	"codex":    "Codex.Color",
+	"gpt":      "OpenAI",
+	"o1":       "OpenAI",
+	"o3":       "OpenAI",
+	"o4":       "OpenAI",
+	"claude":   "Claude.Color",
+	"gemini":   "Gemini.Color",
+	"gemma":    "Gemma.Color",
+	"deepseek": "DeepSeek.Color",
+	"chatglm":  "ZAI",
+	"zhipu":    "ZAI",
+	"glm":      "ZAI",
+	"qwen":     "Qwen.Color",
+	"kimi":     "Kimi",
+	"moonshot": "Moonshot",
+	"minimax":  "Minimax.Color",
+	"abab":     "Minimax.Color",
+	"hunyuan":  "Hunyuan.Color",
+	"hy4":      "Hunyuan.Color",
+	"hy3":      "Hunyuan.Color",
+	"doubao":   "Doubao.Color",
+	"grok":     "XAI",
+	"xai":      "XAI",
+	"mistral":  "Mistral.Color",
+	"llama":    "Meta",
+	"ernie":    "Wenxin.Color",
+	"wenxin":   "Wenxin.Color",
+	"spark":    "Spark.Color",
+	"command":  "Cohere.Color",
+	"jina":     "Jina",
+	"stepfun":  "Stepfun",
+	"longcat":  "LongCat.Color",
+	"baichuan": "Baichuan",
+	"codegeex": "CodeGeeX",
+	"kling":    "Kling.Color",
+	"jimeng":   "Jimeng.Color",
+	"vidu":     "Vidu",
+}
+
+// brandFamilyOrder picks the longest matching stem so that a more specific name
+// is never decided by a shorter prefix of it.
+var brandFamilyOrder = func() []string {
+	stems := make([]string, 0, len(brandFamilyStems))
+	for stem := range brandFamilyStems {
+		stems = append(stems, stem)
+	}
+	sort.Slice(stems, func(i, j int) bool {
+		if len(stems[i]) != len(stems[j]) {
+			return len(stems[i]) > len(stems[j])
+		}
+		return stems[i] < stems[j]
+	})
+	return stems
+}()
+
+// iconMatchSource records how a model's icon was decided, so the run report can
+// separate published data from inference instead of flattening both into one
+// "updated" count.
+type iconMatchSource string
+
+const (
+	iconMatchNone  iconMatchSource = ""
+	iconMatchExact iconMatchSource = "feed"
+	iconMatchFeed  iconMatchSource = "feed-normalized"
+	iconMatchName  iconMatchSource = "name"
+)
+
+// inferIconFromModelName reads the vendor off the model's own name.
+func inferIconFromModelName(modelName string) string {
+	name := strings.ToLower(strings.TrimSpace(modelName))
+	for _, prefix := range modelNamePrefixes {
+		if strings.HasPrefix(name, prefix) {
+			name = strings.TrimPrefix(name, prefix)
+			break
+		}
+	}
+	if index := strings.LastIndex(name, "/"); index >= 0 && index < len(name)-1 {
+		name = name[index+1:]
+	}
+	tokens := strings.FieldsFunc(name, func(r rune) bool {
+		switch r {
+		case '-', '_', '.', ':', ' ', '\t', '/', '@':
+			return true
+		}
+		return false
+	})
+	for _, token := range tokens {
+		if token == "" {
+			continue
+		}
+		for _, stem := range brandFamilyOrder {
+			if strings.HasPrefix(token, stem) {
+				return brandFamilyStems[stem]
+			}
+		}
+	}
+	return ""
+}
+
+// resolveIconForModel returns the best icon available for one site model and
+// where it came from. Tiers, in order: the feed's exact row, the feed's
+// normalized row, then the brand written in the model's own name.
+func resolveIconForModel(modelIcons map[string]string, index map[string]string, modelName string) (string, iconMatchSource) {
 	if icon, ok := modelIcons[modelName]; ok && icon != "" {
-		return icon
+		return icon, iconMatchExact
 	}
 	key := normalizeModelName(modelName)
 	if aliased, ok := iconModelAliases[key]; ok {
 		key = aliased
 	}
-	feedName, ok := index[key]
-	if !ok || feedName == "" {
-		return ""
+	if feedName, ok := index[key]; ok && feedName != "" {
+		blocked := false
+		if other, ok := iconModelBlocklist[key]; ok && normalizeModelName(other) == normalizeModelName(feedName) {
+			blocked = true
+		}
+		// A refused feed row is a miss, not a stop: the name pass below is what
+		// keeps this model from being reported as brandless.
+		if !blocked {
+			if icon := modelIcons[feedName]; icon != "" {
+				return icon, iconMatchFeed
+			}
+		}
 	}
-	// Refuse a match the blocklist calls out. An unmatched model falls back to
-	// the first letter of its name, which is honest; a wrong brand mark is not.
-	if blocked, ok := iconModelBlocklist[key]; ok && normalizeModelName(blocked) == normalizeModelName(feedName) {
-		return ""
+	if icon := inferIconFromModelName(modelName); icon != "" {
+		return icon, iconMatchName
 	}
-	return modelIcons[feedName]
+	return "", iconMatchNone
+}
+
+// buildIconIndex maps a normalized model name to one canonical feed spelling.
+// Kept as a named function so the tests exercise the same construction the run
+// uses rather than a copy of it.
+func buildIconIndex(modelIcons map[string]string) map[string]string {
+	index := make(map[string]string, len(modelIcons))
+	for name := range modelIcons {
+		key := normalizeModelName(name)
+		if key == "" {
+			continue
+		}
+		if current, exists := index[key]; exists && !preferFeedName(name, current) {
+			continue
+		}
+		index[key] = name
+	}
+	return index
 }
 
 // resolveVendorIcon looks an icon up by local name, then by alias, then by a
@@ -212,27 +365,33 @@ func RunIconSync(ctx context.Context, dryRun bool) (*model.IconSyncResult, error
 	//
 	// The normalization is shared with pricing_sync.go so both jobs agree on what
 	// "the same model" means.
-	iconIndex := make(map[string]string, len(modelIcons))
-	for name := range modelIcons {
-		key := normalizeModelName(name)
-		if key == "" {
-			continue
-		}
-		if current, exists := iconIndex[key]; exists && !preferFeedName(name, current) {
-			continue
-		}
-		iconIndex[key] = name
-	}
+	iconIndex := buildIconIndex(modelIcons)
 
 	updates := make([]model.IconUpdate, 0, len(localModelIcons))
 	for name, current := range localModelIcons {
-		official := resolveIconForModel(modelIcons, iconIndex, name)
+		official, source := resolveIconForModel(modelIcons, iconIndex, name)
 		if official == "" {
 			result.NoUpstreamIcon++
 			if len(result.UnmatchedModels) < iconSyncMaxReportItems {
 				result.UnmatchedModels = append(result.UnmatchedModels, name)
 			}
 			continue
+		}
+		if source == iconMatchName {
+			// An inferred icon is a reading of the model's own name, not a
+			// published fact. It may fill an empty slot but must never replace a
+			// mark the feed published or an administrator chose — that is the one
+			// way inference could overwrite something better than itself.
+			if strings.TrimSpace(current) != "" {
+				result.AlreadySet++
+				continue
+			}
+			// Only count it as inferred when it is actually about to be written,
+			// so the reported number matches what the run changed.
+			result.Inferred++
+			if len(result.InferredModels) < iconSyncMaxReportItems {
+				result.InferredModels = append(result.InferredModels, name)
+			}
 		}
 		if strings.TrimSpace(current) != "" && !setting.Overwrite {
 			result.AlreadySet++
@@ -289,8 +448,8 @@ func RunIconSync(ctx context.Context, dryRun bool) (*model.IconSyncResult, error
 	result.AlreadySet += applied.AlreadySet
 	result.Sample = applied.Sample
 
-	logger.LogInfo(ctx, common.LogText("icon sync finished: models=%d vendors=%d already_set=%d no_upstream=%d",
-		result.ModelsUpdated, result.VendorsUpdated, result.AlreadySet, result.NoUpstreamIcon))
+	logger.LogInfo(ctx, common.LogText("icon sync finished: models=%d vendors=%d already_set=%d no_upstream=%d inferred=%d",
+		result.ModelsUpdated, result.VendorsUpdated, result.AlreadySet, result.NoUpstreamIcon, result.Inferred))
 	return result, nil
 }
 

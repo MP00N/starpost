@@ -57,36 +57,37 @@ func TestNormalizeVendorKey(t *testing.T) {
 // misses every renamed row and reports it as "no upstream icon".
 func TestResolveIconForModelNameNormalization(t *testing.T) {
 	modelIcons := map[string]string{
-		"gpt-5.6-sol":               "OpenAI",
-		"glm-5.3-flash":             "ZAI",
-		"MiniMax-M3.1-Flash":        "Minimax.Color",
-		"deepseek-v4-1-flash-1017":  "Mistral.Color",
+		"gpt-5.6-sol":              "OpenAI",
+		"glm-5.3-flash":            "ZAI",
+		"MiniMax-M3.1-Flash":       "Minimax.Color",
+		"deepseek-v4-1-flash-1017": "Mistral.Color",
 	}
-	index := make(map[string]string, len(modelIcons))
-	for name := range modelIcons {
-		key := normalizeModelName(name)
-		if current, exists := index[key]; exists && !preferFeedName(name, current) {
-			continue
-		}
-		index[key] = name
-	}
+	index := buildIconIndex(modelIcons)
 
-	cases := map[string]string{
+	cases := map[string]struct {
+		icon   string
+		source iconMatchSource
+	}{
 		// Exact hit.
-		"gpt-5.6-sol": "OpenAI",
-		// Routing prefix and case.
-		"global:glm-5.3-flash":      "ZAI",
-		"cn:GLM-5.3-Flash":          "ZAI",
-		"global:minimax-m3.1-flash": "Minimax.Color",
-		// Blocked: the feed files this name under Mistral, which is a different
-		// vendor. A letter fallback beats a wrong brand mark.
-		"deepseek-v4.1-flash-1017": "",
-		// Genuinely absent.
-		"codex-auto-review": "",
+		"gpt-5.6-sol": {"OpenAI", iconMatchExact},
+		// Routing prefix and case, answered by the feed's normalized row.
+		"global:glm-5.3-flash":      {"ZAI", iconMatchFeed},
+		"cn:GLM-5.3-Flash":          {"ZAI", iconMatchFeed},
+		"global:minimax-m3.1-flash": {"Minimax.Color", iconMatchFeed},
+		// The feed files this name under Mistral — a different vendor. The feed
+		// row is refused, but the name still says DeepSeek, so the reading pass
+		// answers instead of leaving the row brandless.
+		"deepseek-v4.1-flash-1017": {"DeepSeek.Color", iconMatchName},
+		// Absent from the feed, brand legible in the name.
+		"codex-auto-review": {"Codex.Color", iconMatchName},
+		// Neither feed nor name: an honest miss.
+		"zzz-mystery-model": {"", iconMatchNone},
 	}
 	for model, want := range cases {
-		if got := resolveIconForModel(modelIcons, index, model); got != want {
-			t.Errorf("resolveIconForModel(%q) = %q, want %q", model, got, want)
+		icon, source := resolveIconForModel(modelIcons, index, model)
+		if icon != want.icon || source != want.source {
+			t.Errorf("resolveIconForModel(%q) = (%q, %q), want (%q, %q)",
+				model, icon, source, want.icon, want.source)
 		}
 	}
 }
@@ -96,19 +97,40 @@ func TestResolveIconForModelNameNormalization(t *testing.T) {
 // caller can compare.
 func TestResolveIconForModelPrefersExactOverNormalized(t *testing.T) {
 	modelIcons := map[string]string{
-		"glm-5.3-flash":  "ZAI",
-		"GLM_5.3_Flash":  "SomeOtherBrand",
+		"glm-5.3-flash": "ZAI",
+		"GLM_5.3_Flash": "SomeOtherBrand",
 	}
-	index := make(map[string]string)
-	for name := range modelIcons {
-		key := normalizeModelName(name)
-		if current, exists := index[key]; exists && !preferFeedName(name, current) {
-			continue
-		}
-		index[key] = name
-	}
+	index := buildIconIndex(modelIcons)
 	// An exact entry always answers for itself, whatever the index picked.
-	if got := resolveIconForModel(modelIcons, index, "glm-5.3-flash"); got != "ZAI" {
-		t.Errorf("exact entry should win, got %q", got)
+	if icon, _ := resolveIconForModel(modelIcons, index, "glm-5.3-flash"); icon != "ZAI" {
+		t.Errorf("exact entry should win, got %q", icon)
 	}
 }
+
+// Reading a brand off the name is the last tier, so published data always wins.
+func TestInferIconFromModelName(t *testing.T) {
+	cases := map[string]string{
+		// The two the production run could not place.
+		"codex-auto-review":         "Codex.Color",
+		"global:hy4-preview-f":      "Hunyuan.Color",
+		"global:hy4free":            "Hunyuan.Color",
+		"hy4":                       "Hunyuan.Color",
+		// Routing prefixes and vendor paths do not hide the brand.
+		"cn:deepseek-v4.1-flash":    "DeepSeek.Color",
+		"deepseek-ai/DeepSeek-V3.1": "DeepSeek.Color",
+		// Longest stem wins: chatglm must not be decided by glm.
+		"chatglm-4-plus": "ZAI",
+		"glm-5.3":        "ZAI",
+		// A name with no brand token stays unset rather than guessing.
+		"":                  "",
+		"zzz-mystery-model": "",
+	}
+	for model, want := range cases {
+		if got := inferIconFromModelName(model); got != want {
+			t.Errorf("inferIconFromModelName(%q) = %q, want %q", model, got, want)
+		}
+	}
+}
+
+// buildIconIndex lives in icon_sync.go so the tests exercise the same
+// construction the run uses rather than a copy of it.

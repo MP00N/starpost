@@ -35,11 +35,18 @@ type IconSyncResult struct {
 	VendorsUpdated int `json:"vendors_updated"`
 	// AlreadySet counts records whose icon was present and left alone.
 	AlreadySet int `json:"already_set"`
-	// NoUpstreamIcon counts records the feed has no icon for.
+	// NoUpstreamIcon counts records the feed has no icon for and whose name gives
+	// no brand away either.
 	NoUpstreamIcon int `json:"no_upstream_icon"`
 	// UnmatchedModels names those records, so "no official icon" is actionable
 	// instead of a number an administrator cannot act on.
 	UnmatchedModels []string `json:"unmatched_models,omitempty"`
+	// Inferred counts icons read off the model's own name rather than taken from
+	// the feed. Reported separately because it is a different kind of claim.
+	Inferred int `json:"inferred"`
+	// InferredModels names them, so an administrator can spot a wrong reading
+	// without diffing every row by hand.
+	InferredModels []string `json:"inferred_models,omitempty"`
 	// Sample lists a few changed names so the task row is readable.
 	Sample []string `json:"sample,omitempty"`
 }

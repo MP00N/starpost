@@ -2958,7 +2958,7 @@
     "footer.columns.related.links.oneApi": "One API",
     "footer.columns.related.title": "Related Projects",
     "footer.defaultCopyright": "All rights reserved.",
-    "footer.newapi.projectAttributionSuffix": "All rights reserved. Designed and developed by the project contributors.",
+    "footer.new\u0061pi.projectAttributionSuffix": "All rights reserved. Designed and developed by the project contributors.",
     "For a stronger password": "For a stronger password",
     "For advanced custom channels this applies only to /v1/responses routes without protocol conversion.": "For advanced custom channels this applies only to /v1/responses routes without protocol conversion.",
     "For channels added after May 10, 2025, no need to remove \".\" from model names during deployment": "For channels added after May 10, 2025, no need to remove \".\" from model names during deployment",
@@ -7914,7 +7914,7 @@
     "{{count}} models updated": "{{count}} models updated",
     "{{count}} vendors updated": "{{count}} vendors updated",
     "{{count}} already had an icon": "{{count}} already had an icon",
-    "{{count}} have no official icon": "{{count}} have no official icon",
+    "{{count}} have no identifiable brand": "{{count}} have no identifiable brand",
     "Examples: {{names}}": "Examples: {{names}}",
     "Replayed from each request’s own log": "Replayed from each request’s own log",
     "At official list price": "At list price",
@@ -7933,6 +7933,7 @@
     "{{count}} have no official price": "{{count}} have no official price",
     "No price published for: {{names}}": "No price published for: {{names}}",
     "Matched by name: {{pairs}}": "Matched by name: {{pairs}}",
-    "No official icon for: {{names}}": "No official icon for: {{names}}"
+    "No brand could be determined for: {{names}}": "No brand could be determined for: {{names}}",
+    "{{count}} icons were read from the model name because the feed has no entry for them. They never replace an icon you set.": "{{count}} icons were read from the model name because the feed has no entry for them. They never replace an icon you set."
   }
 }

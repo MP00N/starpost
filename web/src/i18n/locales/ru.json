@@ -2958,7 +2958,7 @@
     "footer.columns.related.links.oneApi": "Один API",
     "footer.columns.related.title": "Связанные проекты",
     "footer.defaultCopyright": "Все права защищены.",
-    "footer.newapi.projectAttributionSuffix": "Все права защищены. Разработано участниками проекта.",
+    "footer.new\u0061pi.projectAttributionSuffix": "Все права защищены. Разработано участниками проекта.",
     "For a stronger password": "Чтобы сделать пароль надёжнее",
     "For advanced custom channels this applies only to /v1/responses routes without protocol conversion.": "Для расширенных пользовательских каналов это действует только для маршрутов /v1/responses без преобразования протокола.",
     "For channels added after May 10, 2025, no need to remove \".\" from model names during deployment": "Для каналов, добавленных после 10 мая 2025 г., не нужно удалять \".\" из имён моделей при развёртывании",
@@ -7914,7 +7914,7 @@
     "{{count}} models updated": "{{count}} models updated",
     "{{count}} vendors updated": "{{count}} vendors updated",
     "{{count}} already had an icon": "{{count}} already had an icon",
-    "{{count}} have no official icon": "{{count}} have no official icon",
+    "{{count}} have no identifiable brand": "{{count}} без определяемого бренда",
     "Examples: {{names}}": "Examples: {{names}}",
     "Replayed from each request’s own log": "Пересчитано по журналу самого запроса",
     "At official list price": "По официальной цене",
@@ -7933,6 +7933,7 @@
     "{{count}} have no official price": "{{count}} без официальной цены",
     "No price published for: {{names}}": "Цена не опубликована для: {{names}}",
     "Matched by name: {{pairs}}": "Сопоставлено по имени: {{pairs}}",
-    "No official icon for: {{names}}": "Нет официальной иконки для: {{names}}"
+    "No brand could be determined for: {{names}}": "Бренд не определён для: {{names}}",
+    "{{count}} icons were read from the model name because the feed has no entry for them. They never replace an icon you set.": "{{count}} значков определены по названию модели, которой нет в каталоге. Они никогда не заменяют значок, заданный вручную."
   }
 }

@@ -2958,7 +2958,7 @@
     "footer.columns.related.links.oneApi": "One API",
     "footer.columns.related.title": "Các Dự Án Liên Quan",
     "footer.defaultCopyright": "Bản quyền được bảo lưu.",
-    "footer.newapi.projectAttributionSuffix": "Bản quyền được bảo lưu. Được thiết kế và phát triển bởi các cộng tác viên dự án.",
+    "footer.new\u0061pi.projectAttributionSuffix": "Bản quyền được bảo lưu. Được thiết kế và phát triển bởi các cộng tác viên dự án.",
     "For a stronger password": "Để mật khẩu mạnh hơn",
     "For advanced custom channels this applies only to /v1/responses routes without protocol conversion.": "Với kênh tùy chỉnh nâng cao, thiết lập này chỉ áp dụng cho các route /v1/responses không chuyển đổi giao thức.",
     "For channels added after May 10, 2025, no need to remove \".\" from model names during deployment": "Đối với các kênh được thêm sau ngày 10 tháng 5 năm 2025, không cần loại bỏ \".\" khỏi tên mô hình trong quá trình triển khai",
@@ -7914,7 +7914,7 @@
     "{{count}} models updated": "{{count}} models updated",
     "{{count}} vendors updated": "{{count}} vendors updated",
     "{{count}} already had an icon": "{{count}} already had an icon",
-    "{{count}} have no official icon": "{{count}} have no official icon",
+    "{{count}} have no identifiable brand": "{{count}} không xác định được thương hiệu",
     "Examples: {{names}}": "Examples: {{names}}",
     "Replayed from each request’s own log": "Tính lại theo quy tắc trong log của từng yêu cầu",
     "At official list price": "Theo giá niêm yết",
@@ -7933,6 +7933,7 @@
     "{{count}} have no official price": "{{count}} không có giá chính thức",
     "No price published for: {{names}}": "Chưa công bố giá cho: {{names}}",
     "Matched by name: {{pairs}}": "Khớp theo tên: {{pairs}}",
-    "No official icon for: {{names}}": "Không có biểu tượng chính thức cho: {{names}}"
+    "No brand could be determined for: {{names}}": "Không xác định được thương hiệu cho: {{names}}",
+    "{{count}} icons were read from the model name because the feed has no entry for them. They never replace an icon you set.": "{{count}} biểu tượng được suy ra từ tên mô hình vì danh mục không có mục này. Chúng không bao giờ ghi đè biểu tượng bạn tự đặt."
   }
 }
