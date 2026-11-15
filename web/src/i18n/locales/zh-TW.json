@@ -7928,6 +7928,10 @@
     "official list price": "按官方原價",
     "your configured cost": "按你填的進價",
     "No explanation was recorded for this one.": "這條沒有留下說明。",
-    "At full input price": "按完整輸入價計"
+    "At full input price": "按完整輸入價計",
+    "{{count}} matched a differently-spelled feed entry": "{{count}} 個按名稱匹配到官方條目",
+    "{{count}} have no official price": "{{count}} 個官方沒有價格",
+    "No price published for: {{names}}": "官方未發布這些模型的價格：{{names}}",
+    "Matched by name: {{pairs}}": "按名稱匹配：{{pairs}}"
   }
 }

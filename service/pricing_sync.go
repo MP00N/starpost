@@ -93,6 +93,16 @@ type PricingSyncResult struct {
 	SkippedModels []string `json:"skipped_models,omitempty"`
 	FailedModels  []string `json:"failed_models,omitempty"`
 	Warnings      []string `json:"warnings,omitempty"`
+	// Unmatched counts the site's own models the feed has no price for at all.
+	// They are not failures — the vendor catalog simply does not cover them —
+	// but they must be visible, or "nothing changed" is indistinguishable from
+	// "nothing was found".
+	Unmatched       int      `json:"unmatched"`
+	UnmatchedModels []string `json:"unmatched_models,omitempty"`
+	// Aliased counts the models whose price came from a differently-spelled
+	// feed entry. Showing the pairs makes the name matching auditable.
+	Aliased       int      `json:"aliased"`
+	AliasedModels []string `json:"aliased_models,omitempty"`
 	FinishedAt    int64    `json:"finished_at"`
 }
 
@@ -402,6 +412,130 @@ func formatCoefficient(value float64) string {
 	return strconv.FormatFloat(rounded, 'f', -1, 64)
 }
 
+// ── 模型名归一化 ────────────────────────────────────────────────────────────
+//
+// The feed names a model the way its vendor publishes it; a site renames it the
+// way its own routing needs. The two rarely match exactly:
+//
+//	site:    global:minimax-m3.1-flash
+//	feed:    MiniMax-M3.1-Flash
+//
+//	site:    deepseek-v4.1-flash-1017
+//	feed:    deepseek-v4-1-flash-1017
+//
+// Without a resolution step every one of those rows silently stays at its old
+// price while the run reports "393 considered, 0 changed" — which is exactly
+// what an administrator reads as "the feature does nothing".
+//
+// Resolution is three passes, most precise first, and every applied alias is
+// recorded so the run can say which name it adopted a price from. A model that
+// matches nothing is reported as unmatched rather than left invisible.
+
+// modelNamePrefixes are routing decorations a site puts in front of the vendor's
+// name. They carry no pricing meaning, so they are stripped before matching.
+var modelNamePrefixes = []string{
+	"global:", "cn:", "us:", "eu:", "jp:", "sg:", "hk:", "intl:", "domestic:",
+}
+
+// pricingModelAliases handles the cases normalization cannot express. Keys and
+// values are both normalized names. Only add an entry when the two names
+// genuinely denote the same model's list price — a wrong alias would write the
+// wrong vendor's price, which is worse than leaving the row alone.
+var pricingModelAliases = map[string]string{
+	// A preview and its released name share a list price in the feed (hy4 and
+	// hy4-preview carry identical coefficients), so mapping one to the other is
+	// safe. A -f suffix has no published counterpart, so it is deliberately
+	// absent rather than guessed at.
+	"hy4free": "hy4",
+	// Deliberately absent, with the reason recorded so nobody "helpfully" adds
+	// them later:
+	//
+	//	deepseekv41flash      the feed publishes deepseek-v4-1-flash-1017 at
+	//	                      p*0.3 and the vendor path at p*0.6 — a 2x spread.
+	//	                      Guessing which one this site resells would write a
+	//	                      wrong price, silently.
+	//	hy4previewf           no -f variant is published at all.
+	//	codexautoreview       the feed only has gpt-5.3-codex variants.
+}
+
+// normalizeModelName lowercases and drops every separator so that
+// `MiniMax-M3.1-Flash`, `minimax-m3.1-flash` and `MiniMax_M3_1_Flash` collide.
+func normalizeModelName(name string) string {
+	name = strings.TrimSpace(strings.ToLower(name))
+	for _, prefix := range modelNamePrefixes {
+		if strings.HasPrefix(name, prefix) {
+			name = strings.TrimPrefix(name, prefix)
+			break
+		}
+	}
+	// A vendor path prefix ("deepseek-ai/DeepSeek-V3.1") carries no price
+	// meaning either: the trailing segment is the model.
+	if index := strings.LastIndex(name, "/"); index >= 0 && index < len(name)-1 {
+		name = name[index+1:]
+	}
+	var builder strings.Builder
+	for _, r := range name {
+		switch r {
+		case '.', '-', '_', ' ', '\t', ':':
+			continue
+		}
+		builder.WriteRune(r)
+	}
+	return builder.String()
+}
+
+// buildModelNameIndex maps a normalized name to one canonical feed spelling.
+//
+// When two feed entries normalize to the same key the winner must not depend on
+// Go's randomized map iteration order: an unstable pick would write a different
+// vendor's price on alternate runs. The longest name wins (it is the more
+// specific product), with a lexicographic tiebreak so equal-length candidates
+// still resolve the same way every time.
+func buildModelNameIndex(prices map[string]OfficialPrice) map[string]string {
+	index := make(map[string]string, len(prices))
+	for name := range prices {
+		key := normalizeModelName(name)
+		if key == "" {
+			continue
+		}
+		current, exists := index[key]
+		if !exists || preferFeedName(name, current) {
+			index[key] = name
+		}
+	}
+	return index
+}
+
+// preferFeedName reports whether a should replace b for the same normalized key.
+func preferFeedName(a, b string) bool {
+	if len(a) != len(b) {
+		return len(a) > len(b)
+	}
+	return a < b
+}
+
+// resolveFeedName returns the feed's name for one site model name.
+//
+// The second return value reports whether the match came from an alias or the
+// normalized index rather than an exact name, so the caller can tell an
+// administrator which names were adopted rather than found.
+func resolveFeedName(modelName string, prices map[string]OfficialPrice, index map[string]string) (string, bool, bool) {
+	if _, ok := prices[modelName]; ok {
+		return modelName, false, true
+	}
+	key := normalizeModelName(modelName)
+	if alias, ok := pricingModelAliases[key]; ok {
+		key = alias
+	}
+	feedName, ok := index[key]
+	if !ok {
+		return "", false, false
+	}
+	return feedName, true, true
+}
+
+// ── 运行 ────────────────────────────────────────────────────────────────────
+
 // pricingSyncMu serializes runs. Two overlapping runs would both read the same
 // snapshot and the second would fail its version check, so a manual "sync now"
 // while the scheduler is running waits instead of erroring.
@@ -514,18 +648,68 @@ func RunPricingSync(ctx context.Context, dryRun bool, progress func(processed, t
 		current[entry.ModelName] = entry
 	}
 
-	changes := make([]model.ModelPricingChange, 0, len(names))
-	for _, name := range names {
-		if setting.Scope == operation_setting.PricingSyncScopeServed {
-			_, isServed := served[name]
-			_, hasPrice := current[name]
-			if !isServed && !hasPrice {
-				continue
+	// 候选集由**本站的模型**决定，而不是由 feed 决定。
+	//
+	// Iterating the feed looks equivalent but is not: a site renames models
+	// (`global:minimax-m3.1-flash` vs the feed's `MiniMax-M3.1-Flash`), so every
+	// renamed row is invisible to a feed-driven loop and stays at whatever price
+	// it had. The run then reports a healthy "393 considered, 0 changed", which
+	// reads as the feature doing nothing. Driving from the site's own list means
+	// every model gets an answer — priced, unchanged, or explicitly unmatched.
+	type candidate struct {
+		siteName string
+		feedName string
+		price    OfficialPrice
+	}
+	candidates := make([]candidate, 0, len(served)+len(current))
+	feedIndex := buildModelNameIndex(prices)
+
+	addCandidate := func(siteName string) {
+		feedName, aliased, ok := resolveFeedName(siteName, prices, feedIndex)
+		if !ok {
+			result.Unmatched++
+			if len(result.UnmatchedModels) < pricingSyncMaxReportItems {
+				result.UnmatchedModels = append(result.UnmatchedModels, siteName)
+			}
+			return
+		}
+		if aliased {
+			result.Aliased++
+			if len(result.AliasedModels) < pricingSyncMaxReportItems {
+				result.AliasedModels = append(result.AliasedModels, siteName+" → "+feedName)
 			}
 		}
+		candidates = append(candidates, candidate{siteName: siteName, feedName: feedName, price: prices[feedName]})
+	}
+
+	seen := make(map[string]struct{}, len(served)+len(current))
+	if setting.Scope == operation_setting.PricingSyncScopeServed {
+		for name := range served {
+			seen[name] = struct{}{}
+			addCandidate(name)
+		}
+		// A model with a configured price is in scope even when it is no longer
+		// served: its price is still shown to users who already used it.
+		for name := range current {
+			if _, done := seen[name]; done {
+				continue
+			}
+			seen[name] = struct{}{}
+			addCandidate(name)
+		}
+	} else {
+		for _, name := range names {
+			addCandidate(name)
+		}
+	}
+	sort.Slice(candidates, func(i, j int) bool { return candidates[i].siteName < candidates[j].siteName })
+
+	changes := make([]model.ModelPricingChange, 0, len(candidates))
+	for _, cand := range candidates {
+		name := cand.siteName
 		result.Considered++
 
-		pricing, usedCNY, ok := buildPricingValues(name, prices[name], catalog, currency, exchangeRate, cnyFactor)
+		pricing, usedCNY, ok := buildPricingValues(name, cand.price, catalog, currency, exchangeRate, cnyFactor)
 		if !ok {
 			result.Skipped++
 			if len(result.SkippedModels) < pricingSyncMaxReportItems {

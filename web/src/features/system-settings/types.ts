@@ -519,6 +519,13 @@ export type PricingSyncRun = {
   unclassified?: string[]
   skipped_models?: string[]
   warnings?: string[]
+  // The site's own models the feed has no price for at all. Reported so
+  // "nothing changed" cannot be mistaken for "nothing ran".
+  unmatched?: number
+  unmatched_models?: string[]
+  // Models whose price came from a differently-spelled feed entry.
+  aliased?: number
+  aliased_models?: string[]
   finished_at: number
 }
 

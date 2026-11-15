@@ -7928,6 +7928,10 @@
     "official list price": "официальная цена",
     "your configured cost": "ваша заданная себестоимость",
     "No explanation was recorded for this one.": "Для этой записи пояснение не сохранено.",
-    "At full input price": "По полной цене ввода"
+    "At full input price": "По полной цене ввода",
+    "{{count}} matched a differently-spelled feed entry": "{{count}} сопоставлено с иначе названной записью",
+    "{{count}} have no official price": "{{count}} без официальной цены",
+    "No price published for: {{names}}": "Цена не опубликована для: {{names}}",
+    "Matched by name: {{pairs}}": "Сопоставлено по имени: {{pairs}}"
   }
 }

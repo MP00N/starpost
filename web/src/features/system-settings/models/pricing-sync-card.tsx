@@ -278,7 +278,40 @@ export function PricingSyncCard() {
                 })}
               </span>
             )}
+            {lastRun.aliased ? (
+              <span>
+                {t('{{count}} matched a differently-spelled feed entry', {
+                  count: lastRun.aliased,
+                })}
+              </span>
+            ) : null}
+            {lastRun.unmatched ? (
+              <span className='text-destructive'>
+                {t('{{count}} have no official price', {
+                  count: lastRun.unmatched,
+                })}
+              </span>
+            ) : null}
           </div>
+          {/*
+            「未匹配」必须列出来。只显示「N 条未变化」时，一个名字对不上的
+            模型和一个价格本来就正确的模型看起来完全一样，管理员会以为同步
+            什么都没干——而实际上它们根本不在官方目录里。
+          */}
+          {lastRun.unmatched_models && lastRun.unmatched_models.length > 0 && (
+            <p className='text-muted-foreground mt-2'>
+              {t('No price published for: {{names}}', {
+                names: lastRun.unmatched_models.join('、'),
+              })}
+            </p>
+          )}
+          {lastRun.aliased_models && lastRun.aliased_models.length > 0 && (
+            <p className='text-muted-foreground mt-1'>
+              {t('Matched by name: {{pairs}}', {
+                pairs: lastRun.aliased_models.join('；'),
+              })}
+            </p>
+          )}
           {lastRun.warnings && lastRun.warnings.length > 0 && (
             <ul className='text-muted-foreground mt-2 list-disc space-y-0.5 pl-4'>
               {lastRun.warnings.map((warning) => (

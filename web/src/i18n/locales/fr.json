@@ -7928,6 +7928,10 @@
     "official list price": "prix catalogue officiel",
     "your configured cost": "votre coût configuré",
     "No explanation was recorded for this one.": "Aucune explication n'a été enregistrée pour celle-ci.",
-    "At full input price": "Au prix d'entrée plein"
+    "At full input price": "Au prix d'entrée plein",
+    "{{count}} matched a differently-spelled feed entry": "{{count}} correspondent à une entrée nommée autrement",
+    "{{count}} have no official price": "{{count}} n'ont pas de prix officiel",
+    "No price published for: {{names}}": "Aucun prix publié pour : {{names}}",
+    "Matched by name: {{pairs}}": "Correspondances par nom : {{pairs}}"
   }
 }

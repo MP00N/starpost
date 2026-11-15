@@ -7928,6 +7928,10 @@
     "official list price": "giá niêm yết chính thức",
     "your configured cost": "giá vốn bạn đã đặt",
     "No explanation was recorded for this one.": "Bản ghi này không có phần giải thích.",
-    "At full input price": "Theo giá đầu vào đầy đủ"
+    "At full input price": "Theo giá đầu vào đầy đủ",
+    "{{count}} matched a differently-spelled feed entry": "{{count}} khớp với mục tên viết khác",
+    "{{count}} have no official price": "{{count}} không có giá chính thức",
+    "No price published for: {{names}}": "Chưa công bố giá cho: {{names}}",
+    "Matched by name: {{pairs}}": "Khớp theo tên: {{pairs}}"
   }
 }

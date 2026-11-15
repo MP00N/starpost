@@ -7928,6 +7928,10 @@
     "official list price": "official list price",
     "your configured cost": "your configured cost",
     "No explanation was recorded for this one.": "No explanation was recorded for this one.",
-    "At full input price": "At full input price"
+    "At full input price": "At full input price",
+    "{{count}} matched a differently-spelled feed entry": "{{count}} matched a differently-spelled feed entry",
+    "{{count}} have no official price": "{{count}} have no official price",
+    "No price published for: {{names}}": "No price published for: {{names}}",
+    "Matched by name: {{pairs}}": "Matched by name: {{pairs}}"
   }
 }
