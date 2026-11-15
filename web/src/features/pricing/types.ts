@@ -129,7 +129,12 @@ export type PricingData = {
   data: PricingModel[]
   vendors: PricingVendor[]
   group_ratio: Record<string, number>
-  usable_group: Record<string, { desc: string; ratio: number }>
+  // `/api/pricing` sends the description as the value itself: `{group: desc}`.
+  // This is NOT the shape `/api/user/groups` returns for the key drawer, which
+  // is `{desc, ratio}`; the two were conflated here and the description was
+  // read as undefined. Both spellings are accepted so a future change to the
+  // endpoint cannot silently blank the page again.
+  usable_group: Record<string, string | { desc: string; ratio: number }>
   supported_endpoint: Record<string, string>
   auto_groups: string[]
 }

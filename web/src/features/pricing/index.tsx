@@ -21,6 +21,7 @@ import { useTranslation } from 'react-i18next'
 
 import { PublicLayout } from '@/components/layout'
 import { PageTransition } from '@/components/page-transition'
+import { translateServerText } from '@/lib/server-error-message'
 
 import {
   LoadingSkeleton,
@@ -35,6 +36,7 @@ import {
 import { EXCLUDED_GROUPS, VIEW_MODES } from './constants'
 import { useFilters } from './hooks/use-filters'
 import { usePricingData } from './hooks/use-pricing-data'
+import { getGroupDescription } from './lib/model-helpers'
 
 export function Pricing() {
   const { t } = useTranslation()
@@ -104,6 +106,18 @@ export function Pricing() {
       ),
     [usableGroup]
   )
+
+  // Shown above the model list whenever a real group is selected. Empty for
+  // "all" and for groups whose description the administrator left blank, so
+  // the page gains no empty card.
+  //
+  // Read through getGroupDescription rather than from a `{desc}` field: the
+  // value on `/api/pricing` is the description string itself, and reading
+  // `.desc` off a string yields undefined with no error at all.
+  const activeGroupDescription = useMemo(() => {
+    const raw = getGroupDescription(usableGroup, groupFilter)
+    return raw ? translateServerText(t, raw) : ''
+  }, [usableGroup, groupFilter, t])
 
   const handleClearAll = useCallback(() => {
     clearFilters()
@@ -255,6 +269,28 @@ export function Pricing() {
                 activeFilterCount={activeFilterCount}
                 onClearFilters={clearFilters}
               />
+
+              {/*
+                分组描述必须放在这里，不能只在筛选面板里。
+
+                筛选面板在手机上是抽屉、在桌面上是左侧栏，都要先打开才看得
+                到；而管理员把描述写进分组的原因，恰恰是希望用户进来就直接
+                读到（「自营出问题了，能及时解决」这类话在选模型前才有用）。
+                「选了某个分组」是这个页面最主要的进入方式，描述就该跟它一起
+                出现在内容顶部。
+              */}
+              {activeGroupDescription && (
+                <div className='bg-card rounded-xl border px-4 py-3'>
+                  <p className='text-muted-foreground text-xs'>
+                    {t('About the {{group}} group', {
+                      group: groupFilter,
+                    })}
+                  </p>
+                  <p className='mt-1 text-sm leading-relaxed whitespace-pre-wrap'>
+                    {activeGroupDescription}
+                  </p>
+                </div>
+              )}
 
               {renderPricingContent()}
             </main>

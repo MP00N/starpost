@@ -7934,6 +7934,7 @@
     "No price published for: {{names}}": "公式価格が未公開：{{names}}",
     "Matched by name: {{pairs}}": "名前で一致：{{pairs}}",
     "No brand could be determined for: {{names}}": "ブランドを判別できないモデル：{{names}}",
-    "{{count}} icons were read from the model name because the feed has no entry for them. They never replace an icon you set.": "{{count}} 件のアイコンはモデル名から推定しました（上流に該当モデルがありません）。手動で設定したアイコンは上書きしません。"
+    "{{count}} icons were read from the model name because the feed has no entry for them. They never replace an icon you set.": "{{count}} 件のアイコンはモデル名から推定しました（上流に該当モデルがありません）。手動で設定したアイコンは上書きしません。",
+    "About the {{group}} group": "「{{group}}」グループについて"
   }
 }

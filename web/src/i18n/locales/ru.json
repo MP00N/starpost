@@ -7934,6 +7934,7 @@
     "No price published for: {{names}}": "Цена не опубликована для: {{names}}",
     "Matched by name: {{pairs}}": "Сопоставлено по имени: {{pairs}}",
     "No brand could be determined for: {{names}}": "Бренд не определён для: {{names}}",
-    "{{count}} icons were read from the model name because the feed has no entry for them. They never replace an icon you set.": "{{count}} значков определены по названию модели, которой нет в каталоге. Они никогда не заменяют значок, заданный вручную."
+    "{{count}} icons were read from the model name because the feed has no entry for them. They never replace an icon you set.": "{{count}} значков определены по названию модели, которой нет в каталоге. Они никогда не заменяют значок, заданный вручную.",
+    "About the {{group}} group": "О группе {{group}}"
   }
 }

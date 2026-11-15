@@ -30,6 +30,9 @@ tiktoken_cache
 electron/node_modules
 electron/dist
 /data/
+# run.sh builds this; a 180 MB binary must never reach the repo.
+/starpost-dev
+/.git-commit-msg
 .gomodcache/
 .gocache-temp
 .gopath

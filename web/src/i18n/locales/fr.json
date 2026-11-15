@@ -7934,6 +7934,7 @@
     "No price published for: {{names}}": "Aucun prix publié pour : {{names}}",
     "Matched by name: {{pairs}}": "Correspondances par nom : {{pairs}}",
     "No brand could be determined for: {{names}}": "Marque indéterminable pour : {{names}}",
-    "{{count}} icons were read from the model name because the feed has no entry for them. They never replace an icon you set.": "{{count}} icônes ont été déduites du nom du modèle, absent du catalogue amont. Elles ne remplacent jamais une icône que vous avez définie."
+    "{{count}} icons were read from the model name because the feed has no entry for them. They never replace an icon you set.": "{{count}} icônes ont été déduites du nom du modèle, absent du catalogue amont. Elles ne remplacent jamais une icône que vous avez définie.",
+    "About the {{group}} group": "À propos du groupe {{group}}"
   }
 }

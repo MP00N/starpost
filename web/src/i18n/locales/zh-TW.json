@@ -7934,6 +7934,7 @@
     "No price published for: {{names}}": "官方未發布這些模型的價格：{{names}}",
     "Matched by name: {{pairs}}": "按名稱匹配：{{pairs}}",
     "No brand could be determined for: {{names}}": "這些模型判斷不出品牌：{{names}}",
-    "{{count}} icons were read from the model name because the feed has no entry for them. They never replace an icon you set.": "{{count}} 個圖示是按模型名推斷的（上游沒有這個模型），不會覆蓋你手動設定的圖示。"
+    "{{count}} icons were read from the model name because the feed has no entry for them. They never replace an icon you set.": "{{count}} 個圖示是按模型名推斷的（上游沒有這個模型），不會覆蓋你手動設定的圖示。",
+    "About the {{group}} group": "關於「{{group}}」分組"
   }
 }

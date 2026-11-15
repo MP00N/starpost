@@ -7934,6 +7934,7 @@
     "No price published for: {{names}}": "Chưa công bố giá cho: {{names}}",
     "Matched by name: {{pairs}}": "Khớp theo tên: {{pairs}}",
     "No brand could be determined for: {{names}}": "Không xác định được thương hiệu cho: {{names}}",
-    "{{count}} icons were read from the model name because the feed has no entry for them. They never replace an icon you set.": "{{count}} biểu tượng được suy ra từ tên mô hình vì danh mục không có mục này. Chúng không bao giờ ghi đè biểu tượng bạn tự đặt."
+    "{{count}} icons were read from the model name because the feed has no entry for them. They never replace an icon you set.": "{{count}} biểu tượng được suy ra từ tên mô hình vì danh mục không có mục này. Chúng không bao giờ ghi đè biểu tượng bạn tự đặt.",
+    "About the {{group}} group": "Về nhóm {{group}}"
   }
 }

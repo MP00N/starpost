@@ -24,11 +24,43 @@ import type { PricingModel } from '../types'
 // ----------------------------------------------------------------------------
 
 /**
+ * Pick the description for one group out of `usable_group`.
+ *
+ * `/api/pricing` sends `{group: "description"}` — the value is the string
+ * itself. `/api/user/groups`, which the API-key drawer reads, sends
+ * `{desc, ratio}` instead. Both are accepted here so a page cannot go blank by
+ * reading the wrong one; that mistake is silent, because `"text".desc` is
+ * simply `undefined` and no type check catches it.
+ *
+ * Returns '' for the "all" pseudo-group and for groups with no description, so
+ * callers can render nothing rather than an empty box.
+ */
+export function getGroupDescription(
+  usableGroup: Record<string, unknown> | undefined,
+  group: string
+): string {
+  if (!group || group === FILTER_ALL) return ''
+  const value = usableGroup?.[group]
+  const raw =
+    typeof value === 'string'
+      ? value
+      : typeof value === 'object' && value !== null
+        ? (value as { desc?: unknown }).desc
+        : undefined
+  return typeof raw === 'string' ? raw.trim() : ''
+}
+
+/**
  * Get available groups for a model
+ *
+ * Only the keys matter here, so the value type is left open: `/api/pricing`
+ * sends a plain description string while `/api/user/groups` sends
+ * `{desc, ratio}`. Narrowing this to one of them made the other fail to type
+ * check without saying anything useful.
  */
 export function getAvailableGroups(
   model: PricingModel,
-  usableGroup: Record<string, { desc: string; ratio: number }>
+  usableGroup: Record<string, unknown>
 ): string[] {
   const modelEnableGroups = Array.isArray(model.enable_groups)
     ? model.enable_groups
