@@ -694,16 +694,13 @@ func RunPricingSync(ctx context.Context, dryRun bool, progress func(processed, t
 
 	seen := make(map[string]struct{}, len(served)+len(current))
 	if setting.Scope == operation_setting.PricingSyncScopeServed {
+		// Only the models this site lists. The pricing snapshot is NOT added on
+		// top: it carries an entry for every model the shipped price table ever
+		// knew — several hundred of them, most retired years ago — and folding
+		// those in is what produced a 238-item "no official price" list that
+		// buried the four real gaps. A retired model that still has a configured
+		// price keeps it; this job simply has nothing to say about it.
 		for name := range served {
-			seen[name] = struct{}{}
-			addCandidate(name)
-		}
-		// A model with a configured price is in scope even when it is no longer
-		// served: its price is still shown to users who already used it.
-		for name := range current {
-			if _, done := seen[name]; done {
-				continue
-			}
 			seen[name] = struct{}{}
 			addCandidate(name)
 		}
