@@ -111,6 +111,8 @@ export function ModelProfit() {
         cost_total: number
         margin_total: number
         official_cost_models: number
+        self_use_revenue: number
+        self_use_requests: number
       }
     },
   })
@@ -255,6 +257,23 @@ export function ModelProfit() {
               </p>
             </div>
           </section>
+
+          {/*
+            站长自用必须说清楚。这些请求确实发生了、也确实扣了额度，但它们既
+            不是收入也不是利润——钱从左手出到右手。不说的话，管理员会以为这里
+            的合计和日志总数对不上是算错了。
+          */}
+          {data.self_use_requests > 0 && (
+            <p className='text-muted-foreground text-xs'>
+              {t(
+                'Your own requests ({{count}}) are excluded: {{amount}} of self-use traffic is not revenue.',
+                {
+                  count: data.self_use_requests,
+                  amount: money(data.self_use_revenue),
+                }
+              )}
+            </p>
+          )}
 
           <section className='border-border grid grid-cols-2 gap-4 rounded border p-4 sm:grid-cols-3'>
             <div>

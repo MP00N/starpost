@@ -7935,6 +7935,8 @@
     "Matched by name: {{pairs}}": "按名稱匹配：{{pairs}}",
     "No brand could be determined for: {{names}}": "這些模型判斷不出品牌：{{names}}",
     "{{count}} icons were read from the model name because the feed has no entry for them. They never replace an icon you set.": "{{count}} 個圖示是按模型名推斷的（上游沒有這個模型），不會覆蓋你手動設定的圖示。",
-    "About the {{group}} group": "關於「{{group}}」分組"
+    "About the {{group}} group": "關於「{{group}}」分組",
+    "Your own requests ({{count}}) are excluded: {{amount}} of self-use traffic is not revenue.": "你自己的 {{count}} 次呼叫已排除：{{amount}} 屬於自用，不計入收入。",
+    "Your own requests ({{count}}, {{amount}}) are excluded — self-use is not a customer bill.": "你自己的 {{count}} 次呼叫（{{amount}}）已排除——自用不是客戶帳單。"
   }
 }

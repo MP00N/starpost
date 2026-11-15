@@ -83,6 +83,11 @@ type profitResponse struct {
 	// 参与合计的模型里，有多少个成本来自官方目录价兜底
 	OfficialCostModels int `json:"official_cost_models"`
 	QuotaPerUnit       float64 `json:"quota_per_unit"`
+
+	// 站长自用的部分：已从上面的所有数字里排除，单独报出来是为了让管理员
+	// 知道「为什么合计比日志总数小」，而不是怀疑日志丢了。
+	SelfUseRevenue  float64 `json:"self_use_revenue"`
+	SelfUseRequests int64   `json:"self_use_requests"`
 }
 
 // 上游成本配置的 option key：{"模型名": {"ratio":..,"completion_ratio":..,"cache_ratio":..}}
@@ -129,13 +134,29 @@ func GetModelProfit(c *gin.Context) {
 	since := time.Now().Unix() - int64(days*86400)
 
 	var rows []auditRow
-	err := model.DB.Model(&model.Log{}).
+	query := model.DB.Model(&model.Log{}).
 		Select("model_name, prompt_tokens, completion_tokens, quota, other").
-		Where("type = ? AND created_at >= ?", 2, since).
-		Find(&rows).Error
+		Where("type = ? AND created_at >= ?", 2, since)
+	// 站长的自用流量不计入盈亏：钱从左手出到右手，既不是收入也不是利润。
+	// 但被排除的量要单独报出来，否则管理员会以为日志丢了。
+	if selfUse := model.SelfUseUserIds(); len(selfUse) > 0 {
+		query = query.Where("user_id NOT IN ?", selfUse)
+	}
+	err := query.Find(&rows).Error
 	if err != nil {
 		common.ApiError(c, err)
 		return
+	}
+
+	// 被排除的那部分单独统计，页面上要如实告诉管理员「有多少是你的自用」。
+	var selfUseRevenue int64
+	var selfUseRequests int64
+	selfUseQuery := model.DB.Model(&model.Log{}).
+		Select("COALESCE(SUM(quota),0), COUNT(*)").
+		Where("type = ? AND created_at >= ?", 2, since)
+	if ids := model.SelfUseUserIds(); len(ids) > 0 {
+		selfUseQuery = selfUseQuery.Where("user_id IN ?", ids)
+		_ = selfUseQuery.Row().Scan(&selfUseRevenue, &selfUseRequests)
 	}
 
 	costs := getUpstreamCosts()
@@ -360,5 +381,7 @@ func GetModelProfit(c *gin.Context) {
 		MarginTotal:        revenueTotal - costTotal,
 		OfficialCostModels: officialCostModels,
 		QuotaPerUnit:       common.QuotaPerUnit,
+		SelfUseRevenue:     float64(selfUseRevenue),
+		SelfUseRequests:    selfUseRequests,
 	})
 }

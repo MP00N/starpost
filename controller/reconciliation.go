@@ -98,6 +98,9 @@ type auditResponse struct {
 	UnverifiableRows int `json:"unverifiable_rows"`
 	// OfficialModels 是价格簿里能查到原价的模型数，0 表示还没拉到官方价。
 	OfficialModels int `json:"official_models"`
+	// 站长自用已被排除，这里如实报出被排掉多少，避免管理员以为日志缺了。
+	SelfUseRevenue  int64 `json:"self_use_revenue"`
+	SelfUseRequests int64 `json:"self_use_requests"`
 }
 
 type auditRow struct {
@@ -219,15 +222,29 @@ func GetReconciliationAudit(c *gin.Context) {
 	since := time.Now().Unix() - int64(days*86400)
 
 	var rows []auditRow
-	err := model.DB.Model(&model.Log{}).
+	query := model.DB.Model(&model.Log{}).
 		Select("id, user_id, username, token_name, model_name, prompt_tokens, "+
 			"completion_tokens, quota, \"group\", channel_id, channel_name, ip, "+
 			"request_id, created_at, other").
-		Where("type = ? AND created_at >= ?", 2, since).
-		Find(&rows).Error
+		Where("type = ? AND created_at >= ?", 2, since)
+	// 站长的自用流量不进对账：对账回答的是「客户被扣的钱和我算的对不对」，
+	// 站长自己那一笔扣对扣错都不影响生意，混进来只会让样本失真。
+	if selfUse := model.SelfUseUserIds(); len(selfUse) > 0 {
+		query = query.Where("user_id NOT IN ?", selfUse)
+	}
+	err := query.Find(&rows).Error
 	if err != nil {
 		common.ApiError(c, err)
 		return
+	}
+
+	var selfUseRevenue int64
+	var selfUseRequests int64
+	if ids := model.SelfUseUserIds(); len(ids) > 0 {
+		_ = model.DB.Model(&model.Log{}).
+			Select("COALESCE(SUM(quota),0), COUNT(*)").
+			Where("type = ? AND created_at >= ? AND user_id IN ?", 2, since, ids).
+			Row().Scan(&selfUseRevenue, &selfUseRequests)
 	}
 
 	byModel := map[string]*modelAudit{}
@@ -532,6 +549,8 @@ func GetReconciliationAudit(c *gin.Context) {
 		FreeModelRows:    freeRows,
 		UnverifiableRows: unverifiableRows,
 		OfficialModels:   service.GetOfficialPriceStatus().Models,
+		SelfUseRevenue:   selfUseRevenue,
+		SelfUseRequests:  selfUseRequests,
 	})
 }
 

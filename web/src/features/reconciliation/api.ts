@@ -68,6 +68,10 @@ export type AuditResult = {
   free_model_rows: number
   unverifiable_rows: number
   official_models: number
+  // The site owner's own traffic is excluded from every figure above: it is not
+  // revenue and not a customer's bill. Reported so the totals cannot look wrong.
+  self_use_revenue: number
+  self_use_requests: number
 }
 
 export async function getReconciliationAudit(

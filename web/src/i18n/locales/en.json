@@ -7935,6 +7935,8 @@
     "Matched by name: {{pairs}}": "Matched by name: {{pairs}}",
     "No brand could be determined for: {{names}}": "No brand could be determined for: {{names}}",
     "{{count}} icons were read from the model name because the feed has no entry for them. They never replace an icon you set.": "{{count}} icons were read from the model name because the feed has no entry for them. They never replace an icon you set.",
-    "About the {{group}} group": "About the {{group}} group"
+    "About the {{group}} group": "About the {{group}} group",
+    "Your own requests ({{count}}) are excluded: {{amount}} of self-use traffic is not revenue.": "Your own requests ({{count}}) are excluded: {{amount}} of self-use traffic is not revenue.",
+    "Your own requests ({{count}}, {{amount}}) are excluded — self-use is not a customer bill.": "Your own requests ({{count}}, {{amount}}) are excluded — self-use is not a customer bill."
   }
 }

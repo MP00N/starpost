@@ -148,6 +148,18 @@ export function Reconciliation() {
         </p>
       )}
 
+      {data && data.self_use_requests > 0 && (
+        <p className='text-muted-foreground text-[12.5px]'>
+          {t(
+            'Your own requests ({{count}}, {{amount}}) are excluded — self-use is not a customer bill.',
+            {
+              count: data.self_use_requests,
+              amount: formatQuota(data.self_use_revenue),
+            }
+          )}
+        </p>
+      )}
+
       {data && (
         <>
           <section className='border-border grid grid-cols-2 gap-4 rounded-md border p-4 sm:grid-cols-5'>
