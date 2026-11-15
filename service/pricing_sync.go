@@ -629,9 +629,19 @@ func RunPricingSync(ctx context.Context, dryRun bool, progress func(processed, t
 	}
 	sort.Strings(names)
 
-	served := make(map[string]struct{})
-	if setting.Scope == operation_setting.PricingSyncScopeServed {
-		for _, name := range model.GetEnabledModels() {
+	// 「本站的模型」以控制台的模型列表为准，不是 abilities 表。
+	//
+	// abilities 里还留着大量内置价格表的老模型（gpt-3.5-turbo-0613、yi-34b
+	// 之类），官方 feed 早就不收它们了。把那一整批都算进「官方无价格」，
+	// 一次同步会报出两百多个不存在的问题，真正需要关注的那几个反而被淹掉。
+	// models 表才是管理员实际维护、真正对外提供的那份清单。
+	var configured []*model.Model
+	if err := model.DB.Select("model_name").Find(&configured).Error; err != nil {
+		return result, fmt.Errorf("read model list: %w", err)
+	}
+	served := make(map[string]struct{}, len(configured))
+	for _, item := range configured {
+		if name := strings.TrimSpace(item.ModelName); name != "" {
 			served[name] = struct{}{}
 		}
 	}
