@@ -45,6 +45,8 @@ const (
 	iconSyncTimeout  = 45 * time.Second
 	iconSyncMaxBytes = 16 << 20
 	iconSyncAttempts = 3
+	// iconSyncMaxReportItems bounds the name list carried in the task row.
+	iconSyncMaxReportItems = 50
 )
 
 // ErrIconSyncBusy reports that another icon synchronization is already running.
@@ -90,6 +92,48 @@ var vendorIconAliases = map[string]string{
 	"腾讯混元":       "tencent tokenhub",
 	"混元":         "tencent tokenhub",
 	"hunyuan":    "tencent tokenhub",
+}
+
+// iconModelAliases maps a normalized site name onto a normalized feed name when
+// normalization alone is not enough. Both sides are normalized.
+//
+// This table is deliberately near-empty, and that is a finding rather than an
+// omission: a wrong icon is a visible lie about who made the model. Several
+// plausible-looking aliases were rejected after checking the feed —
+// `deepseek-v4.1-flash-1017` normalizes onto `deepseek-v4-1-flash-1017`, but the
+// feed files that entry under **Mistral.Color**, so adopting it would brand a
+// DeepSeek model as Mistral. A letter fallback is better than that.
+var iconModelAliases = map[string]string{}
+
+// iconModelBlocklist refuses specific normalized feed matches outright, with the
+// reason recorded so nobody re-adopts them later.
+//
+//	deepseekv41flash1017 → deepseek-v4-1-flash-1017 carries Mistral.Color in the
+//	                       feed. The names collide; the brands do not.
+var iconModelBlocklist = map[string]string{
+	"deepseekv41flash1017": "deepseek-v4-1-flash-1017",
+}
+
+// resolveIconForModel returns the published icon name for one site model, or ""
+// when the feed has nothing trustworthy for it.
+func resolveIconForModel(modelIcons map[string]string, index map[string]string, modelName string) string {
+	if icon, ok := modelIcons[modelName]; ok && icon != "" {
+		return icon
+	}
+	key := normalizeModelName(modelName)
+	if aliased, ok := iconModelAliases[key]; ok {
+		key = aliased
+	}
+	feedName, ok := index[key]
+	if !ok || feedName == "" {
+		return ""
+	}
+	// Refuse a match the blocklist calls out. An unmatched model falls back to
+	// the first letter of its name, which is honest; a wrong brand mark is not.
+	if blocked, ok := iconModelBlocklist[key]; ok && normalizeModelName(blocked) == normalizeModelName(feedName) {
+		return ""
+	}
+	return modelIcons[feedName]
 }
 
 // resolveVendorIcon looks an icon up by local name, then by alias, then by a
@@ -158,11 +202,36 @@ func RunIconSync(ctx context.Context, dryRun bool) (*model.IconSyncResult, error
 		VendorsScanned: len(localVendorIcons),
 	}
 
+	// 图标同样要先解决名称对不上的问题。
+	//
+	// The icon feed names a model the vendor's way, exactly like the price feed
+	// does, so an exact-only lookup misses every renamed row: `global:glm-5.3-flash`
+	// never finds `glm-5.3-flash`, and the run reports the model as having no
+	// upstream icon. That is indistinguishable from the catalog genuinely not
+	// covering it, which is how this went unnoticed.
+	//
+	// The normalization is shared with pricing_sync.go so both jobs agree on what
+	// "the same model" means.
+	iconIndex := make(map[string]string, len(modelIcons))
+	for name := range modelIcons {
+		key := normalizeModelName(name)
+		if key == "" {
+			continue
+		}
+		if current, exists := iconIndex[key]; exists && !preferFeedName(name, current) {
+			continue
+		}
+		iconIndex[key] = name
+	}
+
 	updates := make([]model.IconUpdate, 0, len(localModelIcons))
 	for name, current := range localModelIcons {
-		official, ok := modelIcons[name]
-		if !ok || official == "" {
+		official := resolveIconForModel(modelIcons, iconIndex, name)
+		if official == "" {
 			result.NoUpstreamIcon++
+			if len(result.UnmatchedModels) < iconSyncMaxReportItems {
+				result.UnmatchedModels = append(result.UnmatchedModels, name)
+			}
 			continue
 		}
 		if strings.TrimSpace(current) != "" && !setting.Overwrite {

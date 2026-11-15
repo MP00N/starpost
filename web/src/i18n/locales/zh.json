@@ -7932,6 +7932,7 @@
     "{{count}} matched a differently-spelled feed entry": "{{count}} 个按名称匹配到官方条目",
     "{{count}} have no official price": "{{count}} 个官方没有价格",
     "No price published for: {{names}}": "官方未发布这些模型的价格：{{names}}",
-    "Matched by name: {{pairs}}": "按名称匹配：{{pairs}}"
+    "Matched by name: {{pairs}}": "按名称匹配：{{pairs}}",
+    "No official icon for: {{names}}": "官方没有这些模型的图标：{{names}}"
   }
 }

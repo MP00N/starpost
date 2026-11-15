@@ -570,6 +570,8 @@ export type IconSyncRun = {
   vendors_updated: number
   already_set: number
   no_upstream_icon: number
+  // Named so "no official icon" can be acted on rather than just counted.
+  unmatched_models?: string[]
   sample?: string[]
 }
 

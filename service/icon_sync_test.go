@@ -52,3 +52,63 @@ func TestNormalizeVendorKey(t *testing.T) {
 		}
 	}
 }
+
+// The icon feed names models the vendor's way, so an exact-only lookup silently
+// misses every renamed row and reports it as "no upstream icon".
+func TestResolveIconForModelNameNormalization(t *testing.T) {
+	modelIcons := map[string]string{
+		"gpt-5.6-sol":               "OpenAI",
+		"glm-5.3-flash":             "ZAI",
+		"MiniMax-M3.1-Flash":        "Minimax.Color",
+		"deepseek-v4-1-flash-1017":  "Mistral.Color",
+	}
+	index := make(map[string]string, len(modelIcons))
+	for name := range modelIcons {
+		key := normalizeModelName(name)
+		if current, exists := index[key]; exists && !preferFeedName(name, current) {
+			continue
+		}
+		index[key] = name
+	}
+
+	cases := map[string]string{
+		// Exact hit.
+		"gpt-5.6-sol": "OpenAI",
+		// Routing prefix and case.
+		"global:glm-5.3-flash":      "ZAI",
+		"cn:GLM-5.3-Flash":          "ZAI",
+		"global:minimax-m3.1-flash": "Minimax.Color",
+		// Blocked: the feed files this name under Mistral, which is a different
+		// vendor. A letter fallback beats a wrong brand mark.
+		"deepseek-v4.1-flash-1017": "",
+		// Genuinely absent.
+		"codex-auto-review": "",
+	}
+	for model, want := range cases {
+		if got := resolveIconForModel(modelIcons, index, model); got != want {
+			t.Errorf("resolveIconForModel(%q) = %q, want %q", model, got, want)
+		}
+	}
+}
+
+// Already-set icons win over the feed unless overwrite is on: the caller decides
+// that, but resolveIconForModel must still report the feed's answer so the
+// caller can compare.
+func TestResolveIconForModelPrefersExactOverNormalized(t *testing.T) {
+	modelIcons := map[string]string{
+		"glm-5.3-flash":  "ZAI",
+		"GLM_5.3_Flash":  "SomeOtherBrand",
+	}
+	index := make(map[string]string)
+	for name := range modelIcons {
+		key := normalizeModelName(name)
+		if current, exists := index[key]; exists && !preferFeedName(name, current) {
+			continue
+		}
+		index[key] = name
+	}
+	// An exact entry always answers for itself, whatever the index picked.
+	if got := resolveIconForModel(modelIcons, index, "glm-5.3-flash"); got != "ZAI" {
+		t.Errorf("exact entry should win, got %q", got)
+	}
+}

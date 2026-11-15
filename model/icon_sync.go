@@ -37,6 +37,9 @@ type IconSyncResult struct {
 	AlreadySet int `json:"already_set"`
 	// NoUpstreamIcon counts records the feed has no icon for.
 	NoUpstreamIcon int `json:"no_upstream_icon"`
+	// UnmatchedModels names those records, so "no official icon" is actionable
+	// instead of a number an administrator cannot act on.
+	UnmatchedModels []string `json:"unmatched_models,omitempty"`
 	// Sample lists a few changed names so the task row is readable.
 	Sample []string `json:"sample,omitempty"`
 }

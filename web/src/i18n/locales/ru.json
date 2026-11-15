@@ -7932,6 +7932,7 @@
     "{{count}} matched a differently-spelled feed entry": "{{count}} сопоставлено с иначе названной записью",
     "{{count}} have no official price": "{{count}} без официальной цены",
     "No price published for: {{names}}": "Цена не опубликована для: {{names}}",
-    "Matched by name: {{pairs}}": "Сопоставлено по имени: {{pairs}}"
+    "Matched by name: {{pairs}}": "Сопоставлено по имени: {{pairs}}",
+    "No official icon for: {{names}}": "Нет официальной иконки для: {{names}}"
   }
 }

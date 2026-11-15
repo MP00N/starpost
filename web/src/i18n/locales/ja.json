@@ -7932,6 +7932,7 @@
     "{{count}} matched a differently-spelled feed entry": "{{count}} 件が別表記の公式項目に一致",
     "{{count}} have no official price": "{{count}} 件は公式価格がありません",
     "No price published for: {{names}}": "公式価格が未公開：{{names}}",
-    "Matched by name: {{pairs}}": "名前で一致：{{pairs}}"
+    "Matched by name: {{pairs}}": "名前で一致：{{pairs}}",
+    "No official icon for: {{names}}": "公式アイコンがありません：{{names}}"
   }
 }

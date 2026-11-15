@@ -230,6 +230,18 @@ export function IconSyncCard() {
               </span>
             )}
           </div>
+          {/*
+            没匹配上的必须点名。只说「9 个没有官方图标」时，一个名字对不上
+            的模型和一个官方确实没收录的模型长得完全一样，管理员没法判断
+            该不该手工补。
+          */}
+          {lastRun.unmatched_models && lastRun.unmatched_models.length > 0 && (
+            <p className='text-muted-foreground mt-2'>
+              {t('No official icon for: {{names}}', {
+                names: lastRun.unmatched_models.join('、'),
+              })}
+            </p>
+          )}
           {lastRun.sample && lastRun.sample.length > 0 && (
             <p className='text-muted-foreground mt-2'>
               {t('Examples: {{names}}', {

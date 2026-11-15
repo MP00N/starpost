@@ -7932,6 +7932,7 @@
     "{{count}} matched a differently-spelled feed entry": "{{count}} correspondent à une entrée nommée autrement",
     "{{count}} have no official price": "{{count}} n'ont pas de prix officiel",
     "No price published for: {{names}}": "Aucun prix publié pour : {{names}}",
-    "Matched by name: {{pairs}}": "Correspondances par nom : {{pairs}}"
+    "Matched by name: {{pairs}}": "Correspondances par nom : {{pairs}}",
+    "No official icon for: {{names}}": "Aucune icône officielle pour : {{names}}"
   }
 }

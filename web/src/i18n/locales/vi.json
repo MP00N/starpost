@@ -7932,6 +7932,7 @@
     "{{count}} matched a differently-spelled feed entry": "{{count}} khớp với mục tên viết khác",
     "{{count}} have no official price": "{{count}} không có giá chính thức",
     "No price published for: {{names}}": "Chưa công bố giá cho: {{names}}",
-    "Matched by name: {{pairs}}": "Khớp theo tên: {{pairs}}"
+    "Matched by name: {{pairs}}": "Khớp theo tên: {{pairs}}",
+    "No official icon for: {{names}}": "Không có biểu tượng chính thức cho: {{names}}"
   }
 }
